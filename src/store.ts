@@ -49,6 +49,16 @@ interface Store extends AppState {
   resetAll: () => void
 }
 
+export function getAppStateSnapshot(): AppState {
+  const s = useStore.getState()
+  return {
+    categories: s.categories,
+    months: s.months,
+    emergencyFund: s.emergencyFund,
+    bigExpenses: s.bigExpenses,
+  }
+}
+
 export const useStore = create<Store>()(
   persist(
     (set) => ({
