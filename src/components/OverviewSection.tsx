@@ -37,6 +37,7 @@ function CustomTooltip({ active, payload, label }: any) {
 
 export function OverviewSection({ month }: { month: MonthKey }) {
   const categories = useStore((s) => s.categories)
+  const incomeSources = useStore((s) => s.incomeSources)
   const months = useStore((s) => s.months)
   const fund = useStore((s) => s.emergencyFund)
 
@@ -44,10 +45,11 @@ export function OverviewSection({ month }: { month: MonthKey }) {
     () =>
       MONTHS.map((m) => {
         const data = months[m.key]
+        const income = incomeSources.reduce((sum, src) => sum + (data.income[src.id] || 0), 0)
         const planned = categories.reduce((sum, c) => sum + (data.planned[c.id] || 0), 0)
-        return { month: m.short, Renda: data.income, Planejado: planned }
+        return { month: m.short, Renda: income, Planejado: planned }
       }),
-    [months, categories],
+    [months, categories, incomeSources],
   )
 
   const pieData = useMemo(() => {
@@ -62,11 +64,11 @@ export function OverviewSection({ month }: { month: MonthKey }) {
     let planned = 0
     for (const m of MONTHS) {
       const data = months[m.key]
-      income += data.income
+      income += incomeSources.reduce((sum, src) => sum + (data.income[src.id] || 0), 0)
       planned += categories.reduce((sum, c) => sum + (data.planned[c.id] || 0), 0)
     }
     return { income, planned }
-  }, [months, categories])
+  }, [months, categories, incomeSources])
 
   const fundBalance = useMemo(() => {
     let balance = fund.startingBalance

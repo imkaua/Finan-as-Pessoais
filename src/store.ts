@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { AppState, BigExpense, Category, MonthKey } from './types'
+import type { AppState, BigExpense, Category, IncomeSource, MonthKey } from './types'
 import { MONTHS } from './types'
 
 const DEFAULT_CATEGORIES: Category[] = [
@@ -14,8 +14,28 @@ const DEFAULT_CATEGORIES: Category[] = [
   { id: 'outros', name: 'Outros', colorSlot: 8 },
 ]
 
+const DEFAULT_INCOME_SOURCES: IncomeSource[] = [
+  { id: 'assessoria-kaua', name: 'Assessoria Kauã', colorSlot: 1 },
+  { id: 'assessoria-middle', name: 'Assessoria Middle', colorSlot: 2 },
+  { id: 'vida', name: 'Vida', colorSlot: 3 },
+  { id: 'asset-kaua', name: 'Asset Kauã', colorSlot: 4 },
+  { id: 'asset-middle', name: 'Asset Middle', colorSlot: 5 },
+]
+
+function slugify(name: string): string {
+  return `${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now().toString(36)}`
+}
+
+function nextColorSlot(items: { colorSlot: number }[]): number {
+  const usedSlots = new Set(items.map((c) => c.colorSlot))
+  for (let i = 1; i <= 8; i++) {
+    if (!usedSlots.has(i)) return i
+  }
+  return 1
+}
+
 function emptyMonthBudget() {
-  return { income: 0, planned: {}, actual: {} }
+  return { income: {}, planned: {}, actual: {} }
 }
 
 function defaultState(): AppState {
@@ -23,6 +43,7 @@ function defaultState(): AppState {
   for (const m of MONTHS) months[m.key] = emptyMonthBudget()
   return {
     categories: DEFAULT_CATEGORIES,
+    incomeSources: DEFAULT_INCOME_SOURCES,
     months,
     emergencyFund: {
       goal: 0,
@@ -34,7 +55,9 @@ function defaultState(): AppState {
 }
 
 interface Store extends AppState {
-  setIncome: (month: MonthKey, value: number) => void
+  setIncomeAmount: (month: MonthKey, sourceId: string, value: number) => void
+  addIncomeSource: (name: string) => void
+  removeIncomeSource: (id: string) => void
   setPlanned: (month: MonthKey, categoryId: string, value: number) => void
   setActual: (month: MonthKey, categoryId: string, value: number) => void
   addCategory: (name: string) => void
@@ -53,6 +76,7 @@ export function getAppStateSnapshot(): AppState {
   const s = useStore.getState()
   return {
     categories: s.categories,
+    incomeSources: s.incomeSources,
     months: s.months,
     emergencyFund: s.emergencyFund,
     bigExpenses: s.bigExpenses,
@@ -64,10 +88,34 @@ export const useStore = create<Store>()(
     (set) => ({
       ...defaultState(),
 
-      setIncome: (month, value) =>
+      setIncomeAmount: (month, sourceId, value) =>
         set((s) => ({
-          months: { ...s.months, [month]: { ...s.months[month], income: value } },
+          months: {
+            ...s.months,
+            [month]: {
+              ...s.months[month],
+              income: { ...s.months[month].income, [sourceId]: value },
+            },
+          },
         })),
+
+      addIncomeSource: (name) =>
+        set((s) => ({
+          incomeSources: [
+            ...s.incomeSources,
+            { id: slugify(name), name, colorSlot: nextColorSlot(s.incomeSources) },
+          ],
+        })),
+
+      removeIncomeSource: (id) =>
+        set((s) => {
+          const months = { ...s.months }
+          for (const key of Object.keys(months) as MonthKey[]) {
+            const { [id]: _i, ...income } = months[key].income
+            months[key] = { ...months[key], income }
+          }
+          return { incomeSources: s.incomeSources.filter((c) => c.id !== id), months }
+        }),
 
       setPlanned: (month, categoryId, value) =>
         set((s) => ({
@@ -92,18 +140,12 @@ export const useStore = create<Store>()(
         })),
 
       addCategory: (name) =>
-        set((s) => {
-          const id = `${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now().toString(36)}`
-          const usedSlots = new Set(s.categories.map((c) => c.colorSlot))
-          let colorSlot = 1
-          for (let i = 1; i <= 8; i++) {
-            if (!usedSlots.has(i)) {
-              colorSlot = i
-              break
-            }
-          }
-          return { categories: [...s.categories, { id, name, colorSlot }] }
-        }),
+        set((s) => ({
+          categories: [
+            ...s.categories,
+            { id: slugify(name), name, colorSlot: nextColorSlot(s.categories) },
+          ],
+        })),
 
       renameCategory: (id, name) =>
         set((s) => ({
@@ -150,6 +192,20 @@ export const useStore = create<Store>()(
 
       resetAll: () => set(defaultState()),
     }),
-    { name: 'financas-pessoais-dashboard' },
+    {
+      name: 'financas-pessoais-dashboard',
+      version: 2,
+      migrate: (persisted) => {
+        const state = persisted as AppState & { incomeSources?: IncomeSource[] }
+        if (!state.incomeSources) state.incomeSources = DEFAULT_INCOME_SOURCES
+        for (const key of Object.keys(state.months ?? {}) as MonthKey[]) {
+          const month = state.months[key] as unknown as { income: unknown }
+          if (typeof month.income === 'number' || !month.income) {
+            state.months[key] = { ...state.months[key], income: {} }
+          }
+        }
+        return state
+      },
+    },
   ),
 )

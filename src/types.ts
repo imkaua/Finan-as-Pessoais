@@ -19,8 +19,14 @@ export interface Category {
   colorSlot: number
 }
 
+export interface IncomeSource {
+  id: string
+  name: string
+  colorSlot: number
+}
+
 export interface MonthBudget {
-  income: number
+  income: Record<string, number>
   planned: Record<string, number>
   actual: Record<string, number>
 }
@@ -42,6 +48,7 @@ export interface BigExpense {
 
 export interface AppState {
   categories: Category[]
+  incomeSources: IncomeSource[]
   months: Record<MonthKey, MonthBudget>
   emergencyFund: EmergencyFundState
   bigExpenses: BigExpense[]
