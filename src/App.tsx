@@ -25,6 +25,13 @@ const SYNC_DOT_COLOR: Record<string, string> = {
   error: 'var(--status-critical)',
 }
 
+const SYNC_STATUS_LABEL: Record<string, string> = {
+  off: 'Não sincronizado',
+  connecting: 'Conectando…',
+  synced: 'Sincronizado',
+  error: 'Erro de sincronização',
+}
+
 function App() {
   const [tab, setTab] = useState<Tab>('overview')
   const [month, setMonth] = useState<MonthKey>('2026-09')
@@ -49,7 +56,7 @@ function App() {
               title="Sincronização entre aparelhos"
             >
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: SYNC_DOT_COLOR[sync.status] }} />
-              {sync.code ? 'Sincronizado' : 'Não sincronizado'}
+              {SYNC_STATUS_LABEL[sync.status]}
             </button>
             <button
               onClick={() => {
@@ -92,7 +99,7 @@ function App() {
 
       <footer className="max-w-6xl mx-auto px-4 sm:px-6 py-8 text-xs" style={{ color: 'var(--text-muted)' }}>
         Os dados ficam salvos neste navegador
-        {sync.code ? ' e sincronizados com a nuvem' : ' (localStorage)'}.
+        {sync.status === 'synced' ? ' e sincronizados com a nuvem' : ' (localStorage)'}.
       </footer>
     </div>
   )

@@ -41,6 +41,10 @@ export async function subscribeToSync(
   return onSnapshot(
     ref,
     (snap) => {
+      // Ignora o eco local da própria escrita (ainda não confirmado pelo
+      // servidor) para não sobrescrever uma edição mais nova feita enquanto
+      // esse envio estava em andamento.
+      if (snap.metadata.hasPendingWrites) return
       onRemoteData(snap.exists() ? (snap.data() as RemoteAppData) : null)
     },
     onError,

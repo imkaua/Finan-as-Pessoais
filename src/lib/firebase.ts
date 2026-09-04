@@ -6,12 +6,12 @@ import { getFirestore, type Firestore } from 'firebase/firestore'
 // Configurações do projeto > Geral > Seus apps > SDK setup and configuration.
 // Esses valores não são segredo: são feitos para ficar no código do site.
 const firebaseConfig = {
-  apiKey: 'COLE_AQUI_SUA_API_KEY',
-  authDomain: 'COLE_AQUI.firebaseapp.com',
-  projectId: 'COLE_AQUI',
-  storageBucket: 'COLE_AQUI.appspot.com',
-  messagingSenderId: 'COLE_AQUI',
-  appId: 'COLE_AQUI',
+  apiKey: 'AIzaSyCIBSn_Y9eyYwatay2flcGS7vlvrSoTDj4',
+  authDomain: 'our-finance-7e979.firebaseapp.com',
+  projectId: 'our-finance-7e979',
+  storageBucket: 'our-finance-7e979.firebasestorage.app',
+  messagingSenderId: '49452472297',
+  appId: '1:49452472297:web:0986ecb7467656c1d71d78',
 }
 
 export const isFirebaseConfigured = !firebaseConfig.apiKey.startsWith('COLE_AQUI')
