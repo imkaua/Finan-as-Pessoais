@@ -167,3 +167,13 @@ test('caixinha: duas conferências no mesmo dia, vale a última gravada', () => 
   assert.equal(boxBalance('r', evs, [], '2026-10-02').balance, 15000)
   assert.equal(boxBalance('r', [...evs].reverse(), [], '2026-10-02').balance, 15000)
 })
+
+test('campo numérico aceita formatos brasileiros', async () => {
+  const { parseNumber } = await import('../components/parse.ts')
+  assert.equal(parseNumber('1.270.958'), 1270958)
+  assert.equal(parseNumber('1.234,56'), 1234.56)
+  assert.equal(parseNumber('12,5'), 12.5)
+  assert.equal(parseNumber('12.5'), 12.5)
+  assert.equal(parseNumber('R$ 350'), 350)
+  assert.equal(parseNumber(''), null)
+})

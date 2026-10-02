@@ -367,7 +367,7 @@ function ProjectionSection() {
               <AreaChart data={chart} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
                 <CartesianGrid stroke="var(--gridline)" vertical={false} />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--text-muted)' }} tickLine={false} axisLine={{ stroke: 'var(--baseline)' }} minTickGap={16} />
-                <YAxis tick={{ fontSize: 11, fill: 'var(--text-muted)' }} tickLine={false} axisLine={false} width={56} tickFormatter={(v: number) => axisMoney(v)} />
+                <YAxis tick={{ fontSize: 11, fill: 'var(--text-muted)' }} tickLine={false} axisLine={false} width={64} tickFormatter={(v: number) => axisMoney(v)} />
                 <Tooltip
                   formatter={(v) => [brl(Number(v)), 'Total']}
                   contentStyle={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }}

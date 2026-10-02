@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import type { User } from 'firebase/auth'
 import { firestoreBackend, localBackend, signInGoogle, signOutGoogle, watchUser } from './data/backend'
 import { DataProvider, useData } from './data/DataContext'
-import { daysBetween, toISO } from './lib/dates'
+import { daysBetween, logicalToday, toISO } from './lib/dates'
+import { seedDemo } from './data/seed'
 import { lastExport } from './lib/backup'
 import { Button, Card } from './components/ui'
 import { ErrorBoundary } from './components/ErrorBoundary'
@@ -14,7 +15,8 @@ import { HealthView } from './views/HealthView'
 import { StudiesView } from './views/StudiesView'
 import { SettingsView } from './views/SettingsView'
 
-const DEMO = new URLSearchParams(location.search).has('demo')
+// ?demo na URL, ou build de demonstração (VITE_DEMO=1).
+const DEMO = import.meta.env.VITE_DEMO === '1' || new URLSearchParams(location.search).has('demo')
 
 type Tab = 'hoje' | 'semana' | 'financas' | 'assessoria' | 'saude' | 'estudos' | 'ajustes'
 const TABS: { key: Tab; label: string }[] = [
@@ -41,9 +43,18 @@ export default function App() {
 
 function DemoApp() {
   const backend = useMemo(() => localBackend(), [])
+  const [seeded, setSeeded] = useState(false)
+  useEffect(() => {
+    // Primeira visita à demonstração: preenche com dados de exemplo.
+    backend.fetchAll('settings').then(async (docs) => {
+      if (docs.length === 0) await seedDemo(backend, logicalToday(4))
+      setSeeded(true)
+    })
+  }, [backend])
+  if (!seeded) return <Centered>Carregando…</Centered>
   return (
     <DataProvider backend={backend}>
-      <Shell userLabel="Modo demonstração — dados só neste navegador" demo />
+      <Shell userLabel="Modo demonstração — dados de exemplo, salvos só neste navegador" demo />
     </DataProvider>
   )
 }
@@ -126,7 +137,7 @@ function Shell({ userLabel, onSignOut, demo }: { userLabel: string; onSignOut?: 
 
   const exported = lastExport()
   const hasData = data.days.length + data.expenses.length + data.workouts.length > 10
-  const backupDue = hasData && (!exported || daysBetween(exported, toISO(new Date())) > 30)
+  const backupDue = !demo && hasData && (!exported || daysBetween(exported, toISO(new Date())) > 30)
 
   return (
     <div className="min-h-screen">
@@ -156,6 +167,14 @@ function Shell({ userLabel, onSignOut, demo }: { userLabel: string; onSignOut?: 
       </header>
 
       <main className="max-w-3xl mx-auto px-4 py-4 space-y-4">
+        {demo && (
+          <Card>
+            <p className="text-sm">
+              <strong>Demonstração com dados de exemplo.</strong>{' '}
+              <span style={{ color: 'var(--text-secondary)' }}>Nada aqui é real nem vai para a sua conta. Pode registrar, editar e apagar à vontade.</span>
+            </p>
+          </Card>
+        )}
         {error && (
           <Card>
             <p className="text-sm" style={{ color: 'var(--status-critical)' }}>

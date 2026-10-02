@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { parseNumber } from './parse'
 import { useEffect, useState, type ReactNode, type ButtonHTMLAttributes, type InputHTMLAttributes } from 'react'
 
 export function Card({
@@ -96,18 +97,9 @@ export function TextArea({ value, onChange, rows = 3, placeholder }: { value: st
   )
 }
 
-/** Aceita vírgula ou ponto ("1.234,56", "12,5", "12.5"). */
-export function parseNumber(text: string): number | null {
-  const t = text.trim().replace(/\s|R\$/g, '')
-  if (!t) return null
-  const normalized = t.includes(',') ? t.replace(/\./g, '').replace(',', '.') : t
-  const n = Number(normalized)
-  return Number.isFinite(n) ? n : null
-}
-
 function fmtInput(n: number | null | undefined): string {
   if (n === null || n === undefined || !Number.isFinite(n)) return ''
-  return String(n).replace('.', ',')
+  return n.toLocaleString('pt-BR', { maximumFractionDigits: 2 })
 }
 
 /**

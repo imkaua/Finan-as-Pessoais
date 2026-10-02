@@ -26,7 +26,7 @@ export function num(value: number, digits = 1): string {
 /** Rótulo curto para eixo de gráfico: "18 mil", "1,2 mi". */
 export function axisMoney(value: number): string {
   const abs = Math.abs(value)
-  if (abs >= 1_000_000) return `${(value / 1_000_000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mi`
+  if (abs >= 1_000_000) return `${(value / 1_000_000).toLocaleString('pt-BR', { maximumFractionDigits: abs >= 10_000_000 ? 0 : 1 })} mi`
   if (abs >= 1_000) return `${(value / 1_000).toLocaleString('pt-BR', { maximumFractionDigits: 0 })} mil`
   return String(Math.round(value))
 }
