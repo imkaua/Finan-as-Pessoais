@@ -47,7 +47,6 @@ Página única e independente do dashboard, em `public/kaua/index.html`
 `/Finan-as-Pessoais/kaua/`.
 
 Pontos a preencher (todos marcados entre colchetes no arquivo):
-`[FOTO]`, `[CPA-20 · AAI · FBB 100]`, `[@PERFIL]`/`[LINK DO INSTAGRAM]`,
-`[TEXTO DE COMPLIANCE / AVISO LEGAL]`, `[DESTINO]` (`CONFIG.endpoint` no
+`[@PERFIL]`/`[LINK DO INSTAGRAM]`, `[TEXTO DE COMPLIANCE]`, `[DESTINO]` (`CONFIG.endpoint` no
 script), `[INTEGRAÇÃO DE AGENDA]` e os snippets `[GA4]`/`[META PIXEL]`
 (no `<head>` e na função `track()`).

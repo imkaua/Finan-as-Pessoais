@@ -4,12 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Kauã · Assessor de Investimentos</title>
-  <meta name="description" content="Sua carreira tem regras. Seu patrimônio precisa de um plano que as conheça. Agende uma conversa.">
+  <meta name="description" content="Seu patrimônio precisa de um plano que o conheça. Agende uma conversa.">
   <meta name="theme-color" content="#0F1D30">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="pt_BR">
   <meta property="og:title" content="Kauã · Assessor de Investimentos">
-  <meta property="og:description" content="Sua carreira tem regras. Seu patrimônio precisa de um plano que as conheça.">
+  <meta property="og:description" content="Seu patrimônio precisa de um plano que o conheça.">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -198,11 +198,8 @@
     }
 
     /* ---------- 2. Problema ---------- */
-    .problem .h2 { max-width: 19ch; }
-    .questions { margin-top: var(--block); display: grid; gap: 14px; max-width: 46ch; }
-    .questions li { font-size: clamp(17px, 1.6vw, 19px); color: var(--muted); }
-    .questions strong { color: var(--navy); font-weight: 700; }
-    .problem .closing { margin-top: var(--block); max-width: 40ch; }
+    .problem .h2 { max-width: 18ch; }
+    .problem .closing { margin-top: var(--block); font-size: 17px; }
 
     /* ---------- 3. O que faço ---------- */
     .cards {
@@ -230,47 +227,13 @@
       font-family: var(--mono);
       font-size: 14px;
       line-height: 20px;
-      color: var(--champagne-dark);
+      color: var(--navy);
       margin-bottom: 8px;
     }
     .step h3 { font-size: 21px; line-height: 1.25; margin-bottom: 6px; }
     .step p { color: var(--muted); }
 
-    /* ---------- 5. Incluído ---------- */
-    .included .h2 { margin-bottom: var(--block); }
-    .list { max-width: 720px; border-top: 1px solid var(--rule-paper); }
-    .list li {
-      padding: 20px 0;
-      border-bottom: 1px solid var(--rule-paper);
-      font-size: clamp(17px, 1.7vw, 20px);
-      line-height: 1.4;
-    }
-    .list li span { color: var(--muted); }
-
-    /* ---------- 6. Quem é ---------- */
-    .about-grid { display: grid; gap: var(--block); align-items: start; }
-    @media (min-width: 900px) { .about-grid { grid-template-columns: 300px 1fr; gap: 72px; } }
-    .portrait {
-      width: 100%;
-      max-width: 300px;
-      aspect-ratio: 4 / 5;
-      border-radius: var(--radius);
-      overflow: hidden;
-      background: var(--navy);
-    }
-    /* Duotone navy/champagne aplicado a qualquer foto colocada aqui */
-    .portrait img { width: 100%; height: 100%; object-fit: cover; filter: url(#duotone); }
-    .portrait-placeholder {
-      display: flex; align-items: center; justify-content: center;
-      width: 100%; height: 100%;
-      color: var(--champagne);
-      font-weight: 700; font-size: 14px; letter-spacing: 0.06em;
-    }
-    .about p.statement { font-size: clamp(19px, 2vw, 23px); line-height: 1.5; max-width: 34ch; }
-    .signature { margin-top: 32px; font-weight: 700; }
-    .credentials { margin-top: 4px; }
-
-    /* ---------- 7. Formulário ---------- */
+    /* ---------- 5. Formulário ---------- */
     .form-section .seg { padding-bottom: 0; }
     /* O filete termina na altura do botão de envio, com um ponto */
     .form-section .seg::before { bottom: 24px; }
@@ -297,7 +260,6 @@
       padding: 0;
       color: var(--paper);
     }
-    .opt { font-weight: 400; color: var(--on-navy-muted); }
     fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 
     .input {
@@ -373,7 +335,7 @@
       letter-spacing: 0.04em;
     }
 
-    /* ---------- 8. Rodapé ---------- */
+    /* ---------- 6. Rodapé ---------- */
     .footer { border-top: 1px solid var(--navy-700); }
     .footer .inner { padding: 56px 0 64px var(--indent); }
     .footer .sign { font-weight: 700; font-size: 16px; }
@@ -396,18 +358,6 @@
 </head>
 <body>
 
-  <!-- Filtro duotone navy (#0F1D30) → champagne (#C8A876) para o retrato -->
-  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
-    <filter id="duotone" color-interpolation-filters="sRGB">
-      <feColorMatrix type="saturate" values="0"/>
-      <feComponentTransfer>
-        <feFuncR type="table" tableValues="0.059 0.784"/>
-        <feFuncG type="table" tableValues="0.114 0.659"/>
-        <feFuncB type="table" tableValues="0.188 0.463"/>
-      </feComponentTransfer>
-    </filter>
-  </svg>
-
   <main>
 
     <!-- 1. HERO -->
@@ -418,7 +368,7 @@
         </header>
         <div class="seg">
           <p class="eyebrow">Assessor de Investimentos</p>
-          <h1 id="hero-title" class="display">Sua carreira tem regras. Seu patrimônio precisa de um <span class="accent">plano</span> que as conheça.</h1>
+          <h1 id="hero-title" class="display">Seu patrimônio precisa de um <span class="accent">plano</span> que o conheça.</h1>
           <p class="lead">Organizo seu patrimônio, protejo dos riscos e o conduzo até os seus objetivos.</p>
           <div class="cta-row">
             <a class="cta" href="#agendar" data-track="cta_hero">Agendar uma conversa</a>
@@ -431,13 +381,8 @@
     <section class="paper problem" aria-labelledby="problem-title">
       <div class="wrap">
         <div class="seg">
-          <h2 id="problem-title" class="h2 reveal">Estabilidade de renda não é o mesmo que <span class="accent">clareza</span> sobre o seu patrimônio.</h2>
-          <ul class="questions reveal">
-            <li><strong>Aposentadoria:</strong> quanto você precisa, e quando.</li>
-            <li><strong>Proteção:</strong> o que acontece com a sua família se algo mudar.</li>
-            <li><strong>Patrimônio:</strong> o que você tem, e o que cada parte faz.</li>
-          </ul>
-          <p class="small closing reveal">Se alguma dessas respostas é uma suposição, vale enxergar com precisão.</p>
+          <h2 id="problem-title" class="h2 reveal">Para muita gente, investir ainda é sinônimo de <span class="accent">ansiedade</span>, medo e confusão.</h2>
+          <p class="small closing reveal">Não precisa ser assim.</p>
         </div>
       </div>
     </section>
@@ -503,49 +448,7 @@
       </div>
     </section>
 
-    <!-- 5. O QUE ESTÁ INCLUÍDO -->
-    <section class="paper included" aria-labelledby="included-title">
-      <div class="wrap">
-        <div class="seg" style="padding-top:0">
-          <p class="eyebrow">O que está incluído</p>
-          <h2 id="included-title" class="h2 reveal">Tudo o que o seu patrimônio precisa, em um <span class="accent">só</span> plano.</h2>
-          <ul class="list reveal">
-            <li>Assessoria de Investimentos<span>: Nacional e Internacional</span></li>
-            <li>Planejamento de aposentadoria</li>
-            <li>Gestão de riscos<span>: seguro de vida e empresarial</span></li>
-            <li>Consórcio e financiamento</li>
-            <li>Planejamento Sucessório<span>: Nacional e Internacional</span></li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
-    <!-- 6. QUEM É KAUÃ -->
-    <section class="paper about" aria-labelledby="about-title">
-      <div class="wrap">
-        <div class="seg" style="padding-top:0">
-          <h2 id="about-title" class="eyebrow" style="margin-bottom:var(--block)">Quem é Kauã</h2>
-          <div class="about-grid">
-            <figure class="portrait reveal">
-              <!-- [FOTO] Substituir o placeholder por:
-                   <img src="kaua.webp" width="600" height="750" alt="Retrato de Kauã" loading="lazy" decoding="async">
-                   Exportar em WebP, ~600×750 px, abaixo de 80 KB. O duotone é aplicado pelo CSS. -->
-              <div class="portrait-placeholder" role="img" aria-label="Retrato de Kauã (foto a definir)">[FOTO]</div>
-            </figure>
-            <div class="reveal">
-              <p class="statement">Meu trabalho começa pelos seus objetivos de vida, não pelos produtos. Cada recomendação tem um porquê, e esse porquê é explicado a você antes de qualquer decisão. Você sai de cada conversa sabendo onde está e para onde vai.</p>
-              <p class="signature">Kauã · Assessor de Investimentos</p>
-              <p class="small credentials">[CPA-20 · AAI · FBB 100]</p>
-              <div class="cta-row">
-                <a class="cta" href="#agendar" data-track="cta_sobre">Agendar uma conversa</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 7. FORMULÁRIO E AGENDAMENTO -->
+    <!-- 5. FORMULÁRIO E AGENDAMENTO -->
     <section class="navy form-section" id="agendar" aria-labelledby="form-title">
       <div class="wrap">
         <div class="seg" id="form-seg">
@@ -558,7 +461,7 @@
           <div class="form-wrap" id="form-wrap">
             <form id="lead-form" novalidate>
               <div class="fields">
-                <div class="field">
+                <div class="field full">
                   <label for="f-nome">Nome</label>
                   <input class="input" id="f-nome" name="nome" type="text" autocomplete="name" required aria-describedby="e-nome">
                   <p class="error" id="e-nome" aria-live="polite"></p>
@@ -566,7 +469,7 @@
 
                 <div class="field">
                   <label for="f-whatsapp">WhatsApp</label>
-                  <input class="input" id="f-whatsapp" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="(61) 90000-0000" required aria-describedby="e-whatsapp">
+                  <input class="input" id="f-whatsapp" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="(00) 90000-0000" required aria-describedby="e-whatsapp">
                   <p class="error" id="e-whatsapp" aria-live="polite"></p>
                 </div>
 
@@ -575,32 +478,6 @@
                   <input class="input" id="f-email" name="email" type="email" autocomplete="email" inputmode="email" required aria-describedby="e-email">
                   <p class="error" id="e-email" aria-live="polite"></p>
                 </div>
-
-                <div class="field">
-                  <label for="f-carreira">Qual é a sua carreira ou cargo? <span class="opt">(opcional)</span></label>
-                  <input class="input" id="f-carreira" name="carreira" type="text" autocomplete="organization-title">
-                </div>
-
-                <fieldset class="field full" id="g-origem" aria-describedby="e-origem">
-                  <legend>Como chegou até aqui?</legend>
-                  <div class="choices">
-                    <label class="choice"><input type="radio" name="origem" value="Instagram" required><span>Instagram</span></label>
-                    <label class="choice"><input type="radio" name="origem" value="Indicação"><span>Indicação</span></label>
-                    <label class="choice"><input type="radio" name="origem" value="Outro"><span>Outro</span></label>
-                  </div>
-                  <p class="error" id="e-origem" aria-live="polite"></p>
-                </fieldset>
-
-                <fieldset class="field full" id="g-cuida" aria-describedby="e-cuida">
-                  <legend>Hoje alguém cuida dos seus investimentos?</legend>
-                  <div class="choices">
-                    <label class="choice"><input type="radio" name="cuida" value="Assessor" required><span>Assessor</span></label>
-                    <label class="choice"><input type="radio" name="cuida" value="Banco"><span>Banco</span></label>
-                    <label class="choice"><input type="radio" name="cuida" value="Eu mesmo"><span>Eu mesmo</span></label>
-                    <label class="choice"><input type="radio" name="cuida" value="Ainda não"><span>Ainda não</span></label>
-                  </div>
-                  <p class="error" id="e-cuida" aria-live="polite"></p>
-                </fieldset>
 
                 <fieldset class="field full" id="g-faixa" aria-describedby="e-faixa">
                   <legend>Faixa de patrimônio financeiro</legend>
@@ -614,21 +491,9 @@
                 </fieldset>
 
                 <div class="field full">
-                  <label for="f-momento">Seu momento de vida em uma frase</label>
-                  <input class="input" id="f-momento" name="momento" type="text" maxlength="200" required aria-describedby="e-momento">
-                  <p class="error" id="e-momento" aria-live="polite"></p>
-                </div>
-
-                <div class="field full">
                   <label for="f-motivo">O que te fez procurar isso agora?</label>
-                  <textarea class="input" id="f-motivo" name="motivo" rows="3" maxlength="800" required aria-describedby="e-motivo"></textarea>
+                  <textarea class="input" id="f-motivo" name="motivo" rows="4" maxlength="800" required aria-describedby="e-motivo"></textarea>
                   <p class="error" id="e-motivo" aria-live="polite"></p>
-                </div>
-
-                <div class="field full">
-                  <label for="f-satisfeito">O que faria você sair da nossa conversa satisfeito?</label>
-                  <textarea class="input" id="f-satisfeito" name="satisfeito" rows="3" maxlength="800" required aria-describedby="e-satisfeito"></textarea>
-                  <p class="error" id="e-satisfeito" aria-live="polite"></p>
                 </div>
               </div>
 
@@ -667,14 +532,14 @@
     </section>
   </main>
 
-  <!-- 8. RODAPÉ -->
+  <!-- 6. RODAPÉ -->
   <footer class="navy footer">
     <div class="wrap">
       <div class="inner">
         <p class="sign">Kauã · Assessor de Investimentos</p>
         <p class="seal">Escritório credenciado XP · VLG</p>
         <p class="links"><a href="[LINK DO INSTAGRAM]" rel="noopener">Instagram [@PERFIL]</a></p>
-        <p class="legal">[TEXTO DE COMPLIANCE / AVISO LEGAL]</p>
+        <p class="legal">[TEXTO DE COMPLIANCE]</p>
       </div>
     </div>
   </footer>
@@ -749,14 +614,10 @@
           if (!v.trim()) return 'Informe o seu e-mail.';
           return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()) ? '' : 'Confira o e-mail.';
         },
-        origem: function (v) { return v ? '' : 'Escolha uma opção.'; },
-        cuida: function (v) { return v ? '' : 'Escolha uma opção.'; },
         faixa: function (v) { return v ? '' : 'Escolha uma faixa.'; },
-        momento: function (v) { return v.trim() ? '' : 'Escreva uma frase sobre o seu momento.'; },
-        motivo: function (v) { return v.trim() ? '' : 'Conte, em poucas palavras, o que motivou a busca.'; },
-        satisfeito: function (v) { return v.trim() ? '' : 'Conte o que tornaria a conversa útil para você.'; }
+        motivo: function (v) { return v.trim() ? '' : 'Conte, em poucas palavras, o que motivou a busca.'; }
       };
-      var groups = { origem: 'g-origem', cuida: 'g-cuida', faixa: 'g-faixa' };
+      var groups = { faixa: 'g-faixa' };
 
       function valueOf(name) {
         var el = form.elements[name];
@@ -804,7 +665,7 @@
         if (form.elements.site.value) return; // robô
 
         var data = {};
-        Object.keys(rules).concat(['carreira']).forEach(function (n) { data[n] = valueOf(n).trim(); });
+        Object.keys(rules).forEach(function (n) { data[n] = valueOf(n).trim(); });
         data.enviado_em = new Date().toISOString();
         data.pagina = location.href;
 
@@ -812,7 +673,7 @@
         btn.textContent = 'Enviando…';
 
         send(data).then(function () {
-          track('lead_submit', { faixa: data.faixa, origem: data.origem });
+          track('lead_submit', { faixa: data.faixa });
           openAgenda(data);
         }).catch(function () {
           btn.disabled = false;
