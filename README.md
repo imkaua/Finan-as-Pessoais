@@ -39,3 +39,15 @@ Abra `http://localhost:5173`.
 
 React + TypeScript + Vite, Tailwind CSS, Recharts e Zustand (persistência em
 `localStorage`).
+
+## Landing page — Kauã, Assessor de Investimentos
+
+Página única e independente do dashboard, em `public/kaua/index.html`
+(HTML/CSS/JS puros, sem dependências). Com o build do Vite, é publicada em
+`/Finan-as-Pessoais/kaua/`.
+
+Pontos a preencher (todos marcados entre colchetes no arquivo):
+`[FOTO]`, `[CPA-20 · AAI · FBB 100]`, `[@PERFIL]`/`[LINK DO INSTAGRAM]`,
+`[TEXTO DE COMPLIANCE / AVISO LEGAL]`, `[DESTINO]` (`CONFIG.endpoint` no
+script), `[INTEGRAÇÃO DE AGENDA]` e os snippets `[GA4]`/`[META PIXEL]`
+(no `<head>` e na função `track()`).

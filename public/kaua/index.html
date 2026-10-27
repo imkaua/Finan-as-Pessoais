@@ -1,0 +1,848 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kauã · Assessor de Investimentos</title>
+  <meta name="description" content="Sua carreira tem regras. Seu patrimônio precisa de um plano que as conheça. Agende uma conversa.">
+  <meta name="theme-color" content="#0F1D30">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:title" content="Kauã · Assessor de Investimentos">
+  <meta property="og:description" content="Sua carreira tem regras. Seu patrimônio precisa de um plano que as conheça.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;700&display=swap">
+  <!-- IBM Plex Mono só para os números das etapas: subconjunto mínimo de glifos -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400&display=swap&text=01234">
+
+  <!-- [GA4] Inserir aqui o snippet do Google Analytics 4 (gtag.js). -->
+  <!-- [META PIXEL] Inserir aqui o snippet do Meta Pixel. -->
+
+  <style>
+    :root {
+      --navy: #0F1D30;
+      --navy-700: #16273F;
+      --paper: #FAF7F1;
+      --champagne: #C8A876;
+      --champagne-dark: #A9834F;
+      --on-navy-muted: #8FA0B3;
+      --on-paper-muted: #4C5C6C;
+      --rule-paper: rgba(15, 29, 48, 0.14);
+
+      --font: "Onest", system-ui, -apple-system, "Segoe UI", sans-serif;
+      --mono: "IBM Plex Mono", ui-monospace, monospace;
+
+      /* Geometria do filete: mesma posição horizontal em todas as seções */
+      --gut: 20px;      /* margem lateral da página; o filete corre aqui */
+      --indent: 44px;   /* distância do filete até o texto */
+      --sy: 80px;       /* respiro vertical das seções */
+      --block: 44px;    /* respiro entre blocos */
+      --radius: 4px;
+    }
+    @media (min-width: 768px) {
+      :root { --gut: 40px; --indent: 88px; --sy: 112px; --block: 56px; }
+    }
+    @media (min-width: 1200px) {
+      :root { --indent: 120px; --sy: 136px; }
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--navy);
+      color: var(--paper);
+      font-family: var(--font);
+      font-weight: 400;
+      font-size: 17px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    h1, h2, h3, p, ul, ol, figure { margin: 0; }
+    ul, ol { padding: 0; list-style: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    a { color: inherit; }
+
+    :focus-visible {
+      outline: 2px solid var(--focus, var(--champagne));
+      outline-offset: 3px;
+    }
+
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+    }
+
+    /* ---------- Ritmo de cores ---------- */
+    .navy  { background: var(--navy);  color: var(--paper); --line: var(--champagne); --muted: var(--on-navy-muted); --accent: var(--champagne); --focus: var(--champagne); }
+    .paper { background: var(--paper); color: var(--navy);  --line: var(--champagne-dark); --muted: var(--on-paper-muted); --accent: var(--champagne-dark); --focus: var(--navy); }
+
+    /* ---------- Estrutura ---------- */
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 var(--gut); }
+
+    /* .seg carrega o filete na borda esquerda; o conteúdo fica recuado */
+    .seg {
+      position: relative;
+      padding: var(--sy) 0 var(--sy) var(--indent);
+    }
+    .seg::before {
+      content: "";
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 2px;
+      background: var(--line);
+    }
+    .indent { padding-left: var(--indent); }
+
+    /* Ponto do filete (quadrado: o plano não tem curvas) */
+    .dot {
+      position: absolute;
+      left: calc(-1 * var(--indent) - 4px);
+      width: 10px; height: 10px;
+      background: var(--line);
+    }
+
+    /* ---------- Tipografia ---------- */
+    .wordmark {
+      font-weight: 700;
+      font-size: 22px;
+      letter-spacing: -0.01em;
+      line-height: 1;
+      text-decoration: none;
+    }
+    .eyebrow {
+      position: relative;
+      display: block;
+      font-size: 12px;
+      line-height: 16px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--champagne);
+      margin-bottom: 20px;
+    }
+    /* Sobre papel, o champagne-escuro não atinge 4,5:1 em texto pequeno.
+       O rótulo fica em navy e o acento permanece no filete que o alcança. */
+    .paper .eyebrow { color: var(--navy); }
+    /* Derivação do filete até o rótulo: ângulo reto */
+    .seg .eyebrow::before {
+      content: "";
+      position: absolute;
+      left: calc(-1 * var(--indent));
+      width: calc(var(--indent) - 14px);
+      top: 7px;
+      height: 2px;
+      background: var(--line);
+    }
+
+    .display {
+      font-weight: 700;
+      font-size: clamp(34px, 6.2vw, 68px);
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+      max-width: 17ch;
+    }
+    .h2 {
+      font-weight: 700;
+      font-size: clamp(28px, 4.4vw, 50px);
+      line-height: 1.12;
+      letter-spacing: -0.018em;
+      max-width: 20ch;
+    }
+    .accent { color: var(--accent); }
+    .lead {
+      font-size: clamp(18px, 1.8vw, 21px);
+      line-height: 1.55;
+      color: var(--muted);
+      max-width: 34ch;
+    }
+    .small { font-size: 15px; line-height: 1.6; color: var(--muted); }
+    .navy .lead { color: var(--paper); }
+
+    /* ---------- CTA discreto ---------- */
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 24px;
+      border: 1px solid currentColor;
+      border-radius: var(--radius);
+      background: transparent;
+      color: inherit;
+      font: 700 15px/1 var(--font);
+      letter-spacing: 0.01em;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background-color .2s ease, color .2s ease, border-color .2s ease;
+    }
+    .navy .cta { border-color: var(--champagne); color: var(--paper); }
+    .navy .cta:hover { background: var(--champagne); color: var(--navy); }
+    .paper .cta { border-color: var(--navy); color: var(--navy); }
+    .paper .cta:hover { background: var(--navy); color: var(--paper); }
+    .cta-row { margin-top: var(--block); }
+
+    /* ---------- 1. Hero ---------- */
+    .topbar { padding: 28px 0 0; }
+    .hero .seg { padding-top: 72px; }
+    /* O filete nasce na altura do rótulo, num canto reto */
+    .hero .seg::before { top: calc(72px + 7px); }
+    .hero .display { margin-bottom: 28px; }
+    @media (min-width: 768px) {
+      .topbar { padding-top: 40px; }
+      .hero .seg { padding-top: 120px; }
+      .hero .seg::before { top: calc(120px + 7px); }
+    }
+
+    /* ---------- 2. Problema ---------- */
+    .problem .h2 { max-width: 19ch; }
+    .questions { margin-top: var(--block); display: grid; gap: 14px; max-width: 46ch; }
+    .questions li { font-size: clamp(17px, 1.6vw, 19px); color: var(--muted); }
+    .questions strong { color: var(--navy); font-weight: 700; }
+    .problem .closing { margin-top: var(--block); max-width: 40ch; }
+
+    /* ---------- 3. O que faço ---------- */
+    .cards {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: 1fr;
+      align-items: stretch;
+    }
+    @media (min-width: 900px) { .cards { grid-template-columns: repeat(3, 1fr); gap: 20px; } }
+    .card {
+      height: 100%;
+      border: 1px solid var(--rule-paper);
+      border-radius: var(--radius);
+      padding: 28px 24px 32px;
+    }
+    .card h3 { font-size: 22px; line-height: 1.2; margin-bottom: 12px; }
+    .card p { color: var(--muted); font-size: 16px; }
+
+    /* ---------- 4. Como funciona ---------- */
+    .steps { display: grid; gap: 40px; max-width: 46ch; }
+    .step { position: relative; }
+    .step .dot { top: 5px; }
+    .step .num {
+      display: block;
+      font-family: var(--mono);
+      font-size: 14px;
+      line-height: 20px;
+      color: var(--champagne-dark);
+      margin-bottom: 8px;
+    }
+    .step h3 { font-size: 21px; line-height: 1.25; margin-bottom: 6px; }
+    .step p { color: var(--muted); }
+
+    /* ---------- 5. Incluído ---------- */
+    .included .h2 { margin-bottom: var(--block); }
+    .list { max-width: 720px; border-top: 1px solid var(--rule-paper); }
+    .list li {
+      padding: 20px 0;
+      border-bottom: 1px solid var(--rule-paper);
+      font-size: clamp(17px, 1.7vw, 20px);
+      line-height: 1.4;
+    }
+    .list li span { color: var(--muted); }
+
+    /* ---------- 6. Quem é ---------- */
+    .about-grid { display: grid; gap: var(--block); align-items: start; }
+    @media (min-width: 900px) { .about-grid { grid-template-columns: 300px 1fr; gap: 72px; } }
+    .portrait {
+      width: 100%;
+      max-width: 300px;
+      aspect-ratio: 4 / 5;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--navy);
+    }
+    /* Duotone navy/champagne aplicado a qualquer foto colocada aqui */
+    .portrait img { width: 100%; height: 100%; object-fit: cover; filter: url(#duotone); }
+    .portrait-placeholder {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; height: 100%;
+      color: var(--champagne);
+      font-weight: 700; font-size: 14px; letter-spacing: 0.06em;
+    }
+    .about p.statement { font-size: clamp(19px, 2vw, 23px); line-height: 1.5; max-width: 34ch; }
+    .signature { margin-top: 32px; font-weight: 700; }
+    .credentials { margin-top: 4px; }
+
+    /* ---------- 7. Formulário ---------- */
+    .form-section .seg { padding-bottom: 0; }
+    /* O filete termina na altura do botão de envio, com um ponto */
+    .form-section .seg::before { bottom: 24px; }
+    .form-section .seg > .end-dot { left: -4px; bottom: 19px; }
+    .form-section .seg.is-done { padding-bottom: var(--sy); }
+    .form-section .seg.is-done::before { bottom: var(--sy); }
+    .form-section .seg.is-done > .end-dot { bottom: calc(var(--sy) - 4px); }
+    .form-head { margin-bottom: var(--block); }
+    .form-head .h2 { margin-bottom: 20px; }
+    .form-head .lead { color: var(--on-navy-muted); max-width: 44ch; }
+
+    form { max-width: 760px; }
+    .fields { display: grid; gap: 28px; }
+    @media (min-width: 768px) {
+      .fields { grid-template-columns: 1fr 1fr; column-gap: 24px; }
+      .full { grid-column: 1 / -1; }
+    }
+    .field label, .field legend {
+      display: block;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.4;
+      margin-bottom: 10px;
+      padding: 0;
+      color: var(--paper);
+    }
+    .opt { font-weight: 400; color: var(--on-navy-muted); }
+    fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+
+    .input {
+      width: 100%;
+      min-height: 50px;
+      padding: 12px 14px;
+      border: 1px solid var(--on-navy-muted);
+      border-radius: var(--radius);
+      background: var(--navy-700);
+      color: var(--paper);
+      font: 400 16px/1.4 var(--font);
+      transition: border-color .15s ease;
+    }
+    textarea.input { min-height: 104px; resize: vertical; }
+    .input::placeholder { color: var(--on-navy-muted); opacity: 1; }
+    .input:hover { border-color: var(--paper); }
+    .input:focus-visible { outline: 2px solid var(--champagne); outline-offset: 1px; border-color: var(--champagne); }
+    .input[aria-invalid="true"] { border-color: var(--champagne); }
+
+    .choices { display: flex; flex-wrap: wrap; gap: 8px; }
+    .choices.grid-2 { display: grid; grid-template-columns: 1fr 1fr; }
+    @media (min-width: 768px) { .choices.grid-2 { grid-template-columns: repeat(4, 1fr); } }
+    .choice { position: relative; }
+    .choice input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+    .choice span {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 46px;
+      padding: 10px 16px;
+      border: 1px solid var(--on-navy-muted);
+      border-radius: var(--radius);
+      background: var(--navy-700);
+      font-size: 15px; line-height: 1.3; text-align: center;
+      transition: border-color .15s ease, background-color .15s ease, color .15s ease;
+    }
+    .choice:hover span { border-color: var(--paper); }
+    .choice input:checked + span { border-color: var(--champagne); background: var(--champagne); color: var(--navy); font-weight: 700; }
+    .choice input:focus-visible + span { outline: 2px solid var(--champagne); outline-offset: 2px; }
+    fieldset[aria-invalid="true"] .choice span { border-color: var(--champagne); }
+
+    .error {
+      margin-top: 8px;
+      font-size: 14px;
+      line-height: 1.4;
+      color: var(--champagne);
+    }
+    .error:empty { display: none; }
+
+    .actions { margin-top: var(--block); }
+    .actions .cta { width: 100%; }
+    @media (min-width: 768px) { .actions .cta { width: auto; } }
+    .cta[disabled] { opacity: .6; cursor: progress; }
+    .form-note { margin-top: 20px; padding-bottom: var(--sy); font-size: 14px; color: var(--on-navy-muted); max-width: 52ch; }
+    .form-status { margin-top: 16px; font-size: 14px; color: var(--champagne); }
+    .form-status:empty { display: none; }
+
+    .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+    .success[hidden], .form-wrap[hidden] { display: none; }
+    .success { max-width: 760px; }
+    .success h3 { font-size: clamp(24px, 3vw, 32px); line-height: 1.2; margin-bottom: 12px; }
+    .success p { color: var(--on-navy-muted); max-width: 48ch; }
+    .agenda {
+      margin-top: var(--block);
+      min-height: 420px;
+      border: 1px solid var(--navy-700);
+      border-radius: var(--radius);
+      background: var(--navy-700);
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+      text-align: center;
+      color: var(--on-navy-muted);
+      font-size: 14px;
+      letter-spacing: 0.04em;
+    }
+
+    /* ---------- 8. Rodapé ---------- */
+    .footer { border-top: 1px solid var(--navy-700); }
+    .footer .inner { padding: 56px 0 64px var(--indent); }
+    .footer .sign { font-weight: 700; font-size: 16px; }
+    .footer .seal { margin-top: 6px; font-size: 13px; color: var(--on-navy-muted); }
+    .footer .links { margin-top: 28px; font-size: 14px; }
+    .footer .links a { color: var(--paper); text-underline-offset: 3px; }
+    .footer .legal { margin-top: 20px; font-size: 12px; line-height: 1.6; color: var(--on-navy-muted); max-width: 72ch; }
+
+    /* ---------- Entrada suave ---------- */
+    @media (prefers-reduced-motion: no-preference) {
+      .js .reveal { opacity: 0; transform: translateY(10px); transition: opacity .7s ease, transform .7s ease; }
+      .js .reveal.is-in { opacity: 1; transform: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition: none !important; animation: none !important; }
+    }
+  </style>
+  <script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+
+  <!-- Filtro duotone navy (#0F1D30) → champagne (#C8A876) para o retrato -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <filter id="duotone" color-interpolation-filters="sRGB">
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncR type="table" tableValues="0.059 0.784"/>
+        <feFuncG type="table" tableValues="0.114 0.659"/>
+        <feFuncB type="table" tableValues="0.188 0.463"/>
+      </feComponentTransfer>
+    </filter>
+  </svg>
+
+  <main>
+
+    <!-- 1. HERO -->
+    <section class="navy hero" aria-labelledby="hero-title">
+      <div class="wrap">
+        <header class="topbar">
+          <span class="wordmark">Kauã</span>
+        </header>
+        <div class="seg">
+          <p class="eyebrow">Assessor de Investimentos</p>
+          <h1 id="hero-title" class="display">Sua carreira tem regras. Seu patrimônio precisa de um <span class="accent">plano</span> que as conheça.</h1>
+          <p class="lead">Organizo seu patrimônio, protejo dos riscos e o conduzo até os seus objetivos.</p>
+          <div class="cta-row">
+            <a class="cta" href="#agendar" data-track="cta_hero">Agendar uma conversa</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. O PROBLEMA -->
+    <section class="paper problem" aria-labelledby="problem-title">
+      <div class="wrap">
+        <div class="seg">
+          <h2 id="problem-title" class="h2 reveal">Estabilidade de renda não é o mesmo que <span class="accent">clareza</span> sobre o seu patrimônio.</h2>
+          <ul class="questions reveal">
+            <li><strong>Aposentadoria:</strong> quanto você precisa, e quando.</li>
+            <li><strong>Proteção:</strong> o que acontece com a sua família se algo mudar.</li>
+            <li><strong>Patrimônio:</strong> o que você tem, e o que cada parte faz.</li>
+          </ul>
+          <p class="small closing reveal">Se alguma dessas respostas é uma suposição, vale enxergar com precisão.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. O QUE FAÇO -->
+    <section class="paper" aria-labelledby="do-title">
+      <div class="wrap">
+        <div class="seg" style="padding-top:0">
+          <h2 id="do-title" class="eyebrow" style="margin-bottom:var(--block)">O que faço</h2>
+          <ul class="cards">
+            <li class="card reveal">
+              <h3>Organizar</h3>
+              <p>Uma visão única de tudo o que você tem, com cada ativo cumprindo uma função.</p>
+            </li>
+            <li class="card reveal">
+              <h3>Proteger</h3>
+              <p>Seus investimentos, você e sua família.</p>
+            </li>
+            <li class="card reveal">
+              <h3>Conduzir</h3>
+              <p>Uma estratégia com valor e prazo para cada objetivo, acompanhada ao longo do tempo.</p>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. COMO FUNCIONA -->
+    <section class="paper" aria-labelledby="how-title">
+      <div class="wrap">
+        <div class="seg" style="padding-top:0">
+          <h2 id="how-title" class="eyebrow" style="margin-bottom:var(--block)">Como funciona</h2>
+          <ol class="steps">
+            <li class="step reveal">
+              <span class="dot" aria-hidden="true"></span>
+              <span class="num">01</span>
+              <h3>Diagnóstico</h3>
+              <p>Entender seus objetivos de vida antes de qualquer produto.</p>
+            </li>
+            <li class="step reveal">
+              <span class="dot" aria-hidden="true"></span>
+              <span class="num">02</span>
+              <h3>Apresentação</h3>
+              <p>Um plano com valor, prazo e estratégia para cada objetivo.</p>
+            </li>
+            <li class="step reveal">
+              <span class="dot" aria-hidden="true"></span>
+              <span class="num">03</span>
+              <h3>Implementação</h3>
+              <p>Colocar o plano em prática, com cada decisão tendo um porquê.</p>
+            </li>
+            <li class="step reveal">
+              <span class="dot" aria-hidden="true"></span>
+              <span class="num">04</span>
+              <h3>Acompanhamento</h3>
+              <p>Revisar e ajustar conforme sua vida muda.</p>
+            </li>
+          </ol>
+          <div class="cta-row">
+            <a class="cta" href="#agendar" data-track="cta_como_funciona">Agendar uma conversa</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. O QUE ESTÁ INCLUÍDO -->
+    <section class="paper included" aria-labelledby="included-title">
+      <div class="wrap">
+        <div class="seg" style="padding-top:0">
+          <p class="eyebrow">O que está incluído</p>
+          <h2 id="included-title" class="h2 reveal">Tudo o que o seu patrimônio precisa, em um <span class="accent">só</span> plano.</h2>
+          <ul class="list reveal">
+            <li>Assessoria de Investimentos<span>: Nacional e Internacional</span></li>
+            <li>Planejamento de aposentadoria</li>
+            <li>Gestão de riscos<span>: seguro de vida e empresarial</span></li>
+            <li>Consórcio e financiamento</li>
+            <li>Planejamento Sucessório<span>: Nacional e Internacional</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. QUEM É KAUÃ -->
+    <section class="paper about" aria-labelledby="about-title">
+      <div class="wrap">
+        <div class="seg" style="padding-top:0">
+          <h2 id="about-title" class="eyebrow" style="margin-bottom:var(--block)">Quem é Kauã</h2>
+          <div class="about-grid">
+            <figure class="portrait reveal">
+              <!-- [FOTO] Substituir o placeholder por:
+                   <img src="kaua.webp" width="600" height="750" alt="Retrato de Kauã" loading="lazy" decoding="async">
+                   Exportar em WebP, ~600×750 px, abaixo de 80 KB. O duotone é aplicado pelo CSS. -->
+              <div class="portrait-placeholder" role="img" aria-label="Retrato de Kauã (foto a definir)">[FOTO]</div>
+            </figure>
+            <div class="reveal">
+              <p class="statement">Meu trabalho começa pelos seus objetivos de vida, não pelos produtos. Cada recomendação tem um porquê, e esse porquê é explicado a você antes de qualquer decisão. Você sai de cada conversa sabendo onde está e para onde vai.</p>
+              <p class="signature">Kauã · Assessor de Investimentos</p>
+              <p class="small credentials">[CPA-20 · AAI · FBB 100]</p>
+              <div class="cta-row">
+                <a class="cta" href="#agendar" data-track="cta_sobre">Agendar uma conversa</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. FORMULÁRIO E AGENDAMENTO -->
+    <section class="navy form-section" id="agendar" aria-labelledby="form-title">
+      <div class="wrap">
+        <div class="seg" id="form-seg">
+          <div class="form-head">
+            <p class="eyebrow">Agendamento</p>
+            <h2 id="form-title" class="h2">Quer entender como isso funcionaria no seu <span class="accent">caso</span>?</h2>
+            <p class="lead">Conte um pouco sobre você antes da conversa. Assim, ela começa pelo que importa: os seus objetivos.</p>
+          </div>
+
+          <div class="form-wrap" id="form-wrap">
+            <form id="lead-form" novalidate>
+              <div class="fields">
+                <div class="field">
+                  <label for="f-nome">Nome</label>
+                  <input class="input" id="f-nome" name="nome" type="text" autocomplete="name" required aria-describedby="e-nome">
+                  <p class="error" id="e-nome" aria-live="polite"></p>
+                </div>
+
+                <div class="field">
+                  <label for="f-whatsapp">WhatsApp</label>
+                  <input class="input" id="f-whatsapp" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="(61) 90000-0000" required aria-describedby="e-whatsapp">
+                  <p class="error" id="e-whatsapp" aria-live="polite"></p>
+                </div>
+
+                <div class="field">
+                  <label for="f-email">E-mail</label>
+                  <input class="input" id="f-email" name="email" type="email" autocomplete="email" inputmode="email" required aria-describedby="e-email">
+                  <p class="error" id="e-email" aria-live="polite"></p>
+                </div>
+
+                <div class="field">
+                  <label for="f-carreira">Qual é a sua carreira ou cargo? <span class="opt">(opcional)</span></label>
+                  <input class="input" id="f-carreira" name="carreira" type="text" autocomplete="organization-title">
+                </div>
+
+                <fieldset class="field full" id="g-origem" aria-describedby="e-origem">
+                  <legend>Como chegou até aqui?</legend>
+                  <div class="choices">
+                    <label class="choice"><input type="radio" name="origem" value="Instagram" required><span>Instagram</span></label>
+                    <label class="choice"><input type="radio" name="origem" value="Indicação"><span>Indicação</span></label>
+                    <label class="choice"><input type="radio" name="origem" value="Outro"><span>Outro</span></label>
+                  </div>
+                  <p class="error" id="e-origem" aria-live="polite"></p>
+                </fieldset>
+
+                <fieldset class="field full" id="g-cuida" aria-describedby="e-cuida">
+                  <legend>Hoje alguém cuida dos seus investimentos?</legend>
+                  <div class="choices">
+                    <label class="choice"><input type="radio" name="cuida" value="Assessor" required><span>Assessor</span></label>
+                    <label class="choice"><input type="radio" name="cuida" value="Banco"><span>Banco</span></label>
+                    <label class="choice"><input type="radio" name="cuida" value="Eu mesmo"><span>Eu mesmo</span></label>
+                    <label class="choice"><input type="radio" name="cuida" value="Ainda não"><span>Ainda não</span></label>
+                  </div>
+                  <p class="error" id="e-cuida" aria-live="polite"></p>
+                </fieldset>
+
+                <fieldset class="field full" id="g-faixa" aria-describedby="e-faixa">
+                  <legend>Faixa de patrimônio financeiro</legend>
+                  <div class="choices grid-2">
+                    <label class="choice"><input type="radio" name="faixa" value="Até R$ 300 mil" required><span>Até R$&nbsp;300&nbsp;mil</span></label>
+                    <label class="choice"><input type="radio" name="faixa" value="R$ 300 mil a R$ 1 milhão"><span>R$&nbsp;300&nbsp;mil a R$&nbsp;1&nbsp;milhão</span></label>
+                    <label class="choice"><input type="radio" name="faixa" value="R$ 1 a 3 milhões"><span>R$&nbsp;1 a 3&nbsp;milhões</span></label>
+                    <label class="choice"><input type="radio" name="faixa" value="Acima de R$ 3 milhões"><span>Acima de R$&nbsp;3&nbsp;milhões</span></label>
+                  </div>
+                  <p class="error" id="e-faixa" aria-live="polite"></p>
+                </fieldset>
+
+                <div class="field full">
+                  <label for="f-momento">Seu momento de vida em uma frase</label>
+                  <input class="input" id="f-momento" name="momento" type="text" maxlength="200" required aria-describedby="e-momento">
+                  <p class="error" id="e-momento" aria-live="polite"></p>
+                </div>
+
+                <div class="field full">
+                  <label for="f-motivo">O que te fez procurar isso agora?</label>
+                  <textarea class="input" id="f-motivo" name="motivo" rows="3" maxlength="800" required aria-describedby="e-motivo"></textarea>
+                  <p class="error" id="e-motivo" aria-live="polite"></p>
+                </div>
+
+                <div class="field full">
+                  <label for="f-satisfeito">O que faria você sair da nossa conversa satisfeito?</label>
+                  <textarea class="input" id="f-satisfeito" name="satisfeito" rows="3" maxlength="800" required aria-describedby="e-satisfeito"></textarea>
+                  <p class="error" id="e-satisfeito" aria-live="polite"></p>
+                </div>
+              </div>
+
+              <!-- Campo armadilha contra robôs: invisível para pessoas -->
+              <div class="hp" aria-hidden="true">
+                <label for="f-site">Não preencha</label>
+                <input id="f-site" name="site" type="text" tabindex="-1" autocomplete="off">
+              </div>
+
+              <div class="actions">
+                <button class="cta" type="submit" id="submit-btn">Enviar e escolher um horário</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="success" id="success" hidden>
+            <h3 id="success-title" tabindex="-1">Obrigado. Agora, escolha um horário.</h3>
+            <p>Recebi suas respostas e vou usá-las para preparar a nossa conversa.</p>
+            <!-- [INTEGRAÇÃO DE AGENDA — Calendly/Google Calendar]
+                 Calendly (inline): substituir o conteúdo de #agenda por
+                   <div class="calendly-inline-widget" data-url="https://calendly.com/[USUARIO]/[EVENTO]?hide_gdpr_banner=1&background_color=16273f&text_color=faf7f1&primary_color=c8a876" style="min-width:320px;height:700px"></div>
+                   <script src="https://assets.calendly.com/assets/external/widget.js" async></script>
+                 O nome e o e-mail já preenchidos podem ser passados na URL (name=…&email=…); ver openAgenda() abaixo.
+                 Google Calendar: usar o iframe da "página de agendamento" no lugar do widget. -->
+            <div class="agenda" id="agenda">[INTEGRAÇÃO DE AGENDA — Calendly/Google Calendar]</div>
+          </div>
+
+          <span class="dot end-dot" aria-hidden="true"></span>
+        </div>
+
+        <div class="indent">
+          <p class="form-note" id="form-note">Suas informações são usadas apenas para preparar a nossa conversa.</p>
+          <p class="form-status" id="form-status" role="alert"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 8. RODAPÉ -->
+  <footer class="navy footer">
+    <div class="wrap">
+      <div class="inner">
+        <p class="sign">Kauã · Assessor de Investimentos</p>
+        <p class="seal">Escritório credenciado XP · VLG</p>
+        <p class="links"><a href="[LINK DO INSTAGRAM]" rel="noopener">Instagram [@PERFIL]</a></p>
+        <p class="legal">[TEXTO DE COMPLIANCE / AVISO LEGAL]</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      var CONFIG = {
+        // [DESTINO: e-mail/CRM/Notion] — URL que recebe um POST em JSON
+        // (ex.: Formspree, webhook do CRM, Make/Zapier → Notion).
+        // Vazio: o envio é apenas simulado para testes.
+        endpoint: ''
+      };
+
+      // Ponto único de eventos de conversão. [GA4/Meta Pixel] Conectar aqui, ex.:
+      //   window.gtag && gtag('event', name, data);
+      //   window.fbq && fbq('track', 'Lead');
+      function track(name, data) {
+        void name; void data;
+      }
+
+      // ---------- Entrada suave ----------
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var reveals = document.querySelectorAll('.reveal');
+      if (!reduce && 'IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) {
+            if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); }
+          });
+        }, { rootMargin: '0px 0px -8% 0px' });
+        reveals.forEach(function (el) { io.observe(el); });
+      } else {
+        reveals.forEach(function (el) { el.classList.add('is-in'); });
+      }
+
+      // ---------- CTAs ----------
+      document.querySelectorAll('a[href="#agendar"]').forEach(function (a) {
+        a.addEventListener('click', function () {
+          track('cta_click', { origem: a.getAttribute('data-track') });
+          // Leva o foco ao primeiro campo, sem rolar de novo
+          setTimeout(function () {
+            var first = document.getElementById('f-nome');
+            if (first && !document.getElementById('form-wrap').hidden) first.focus({ preventScroll: true });
+          }, reduce ? 0 : 450);
+        });
+      });
+
+      // ---------- Formulário ----------
+      var form = document.getElementById('lead-form');
+      var btn = document.getElementById('submit-btn');
+      var status = document.getElementById('form-status');
+      var attempted = false;
+
+      var phone = form.elements.whatsapp;
+      phone.addEventListener('input', function () {
+        var d = phone.value.replace(/\D/g, '').slice(0, 11);
+        var out = d;
+        if (d.length > 2) out = '(' + d.slice(0, 2) + ') ' + d.slice(2);
+        if (d.length > 6) out = '(' + d.slice(0, 2) + ') ' + d.slice(2, d.length === 11 ? 7 : 6) + '-' + d.slice(d.length === 11 ? 7 : 6);
+        phone.value = out;
+      });
+
+      var rules = {
+        nome: function (v) { return v.trim().length >= 2 ? '' : 'Informe o seu nome.'; },
+        whatsapp: function (v) {
+          var d = v.replace(/\D/g, '');
+          if (!d) return 'Informe o seu WhatsApp.';
+          return (d.length === 10 || d.length === 11) ? '' : 'Confira o número, com DDD.';
+        },
+        email: function (v) {
+          if (!v.trim()) return 'Informe o seu e-mail.';
+          return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()) ? '' : 'Confira o e-mail.';
+        },
+        origem: function (v) { return v ? '' : 'Escolha uma opção.'; },
+        cuida: function (v) { return v ? '' : 'Escolha uma opção.'; },
+        faixa: function (v) { return v ? '' : 'Escolha uma faixa.'; },
+        momento: function (v) { return v.trim() ? '' : 'Escreva uma frase sobre o seu momento.'; },
+        motivo: function (v) { return v.trim() ? '' : 'Conte, em poucas palavras, o que motivou a busca.'; },
+        satisfeito: function (v) { return v.trim() ? '' : 'Conte o que tornaria a conversa útil para você.'; }
+      };
+      var groups = { origem: 'g-origem', cuida: 'g-cuida', faixa: 'g-faixa' };
+
+      function valueOf(name) {
+        var el = form.elements[name];
+        return (el && el.value) || '';
+      }
+
+      function check(name) {
+        var msg = rules[name](valueOf(name));
+        var target = groups[name] ? document.getElementById(groups[name]) : form.elements[name];
+        document.getElementById('e-' + name).textContent = msg;
+        if (msg) target.setAttribute('aria-invalid', 'true');
+        else target.removeAttribute('aria-invalid');
+        return !msg;
+      }
+
+      Object.keys(rules).forEach(function (name) {
+        var el = form.elements[name];
+        var evt = groups[name] ? 'change' : 'blur';
+        var list = groups[name] ? Array.prototype.slice.call(el) : [el];
+        list.forEach(function (node) {
+          node.addEventListener(evt, function () { if (attempted || node.value) check(name); });
+          if (!groups[name]) node.addEventListener('input', function () { if (attempted) check(name); });
+        });
+      });
+
+      function firstInvalid() {
+        for (var name in rules) {
+          if (!check(name)) {
+            if (groups[name]) return document.getElementById(groups[name]).querySelector('input');
+            return form.elements[name];
+          }
+        }
+        return null;
+      }
+
+      form.addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        attempted = true;
+        status.textContent = '';
+
+        var invalid = null;
+        Object.keys(rules).forEach(function (n) { if (!check(n) && !invalid) invalid = n; });
+        if (invalid) { firstInvalid().focus(); return; }
+
+        if (form.elements.site.value) return; // robô
+
+        var data = {};
+        Object.keys(rules).concat(['carreira']).forEach(function (n) { data[n] = valueOf(n).trim(); });
+        data.enviado_em = new Date().toISOString();
+        data.pagina = location.href;
+
+        btn.disabled = true;
+        btn.textContent = 'Enviando…';
+
+        send(data).then(function () {
+          track('lead_submit', { faixa: data.faixa, origem: data.origem });
+          openAgenda(data);
+        }).catch(function () {
+          btn.disabled = false;
+          btn.textContent = 'Enviar e escolher um horário';
+          status.textContent = 'Não foi possível enviar agora. Tente novamente em instantes.';
+        });
+      });
+
+      function send(data) {
+        if (!CONFIG.endpoint) return Promise.resolve();
+        return fetch(CONFIG.endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(data)
+        }).then(function (r) { if (!r.ok) throw new Error(r.status); });
+      }
+
+      function openAgenda(data) {
+        // [INTEGRAÇÃO DE AGENDA] Com Calendly, pré-preencher nome e e-mail:
+        //   var url = 'https://calendly.com/[USUARIO]/[EVENTO]?name=' + encodeURIComponent(data.nome) + '&email=' + encodeURIComponent(data.email);
+        void data;
+        document.getElementById('form-wrap').hidden = true;
+        document.getElementById('form-note').hidden = true;
+        document.getElementById('success').hidden = false;
+        document.getElementById('form-seg').classList.add('is-done');
+        var title = document.getElementById('success-title');
+        title.focus({ preventScroll: true });
+        title.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+      }
+    })();
+  </script>
+</body>
+</html>
