@@ -1,19 +1,36 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { getAppStateSnapshot, useStore } from '../store'
+import { getDados, uid, useStore } from '../store'
 import {
   generateCode,
   getSyncCode,
   normalizeCode,
   persistSyncCode,
   pushToSync,
+  readLegacySync,
   subscribeToSync,
 } from '../lib/sync'
 import { isFirebaseConfigured } from '../lib/firebase'
-import type { AppState } from '../types'
+import type { Dados } from '../types'
+import { paraDadosAtuais } from '../lib/migrate'
+import { todayISO } from '../lib/dates'
 
 export type SyncStatus = 'off' | 'connecting' | 'synced' | 'error'
 
 const PUSH_DELAY_MS = 800
+
+export const SYNC_LABEL: Record<string, string> = {
+  off: 'Não sincronizado',
+  connecting: 'Conectando…',
+  synced: 'Sincronizado',
+  error: 'Erro de sincronização',
+}
+
+export const SYNC_COLOR: Record<string, string> = {
+  off: 'var(--muted)',
+  connecting: 'var(--warn)',
+  synced: 'var(--ok)',
+  error: 'var(--bad)',
+}
 
 export function useCloudSync() {
   const [code, setCode] = useState<string | null>(() => getSyncCode())
@@ -40,16 +57,29 @@ export function useCloudSync() {
 
     subscribeToSync(
       code,
-      (data) => {
+      async (data) => {
         if (cancelled) return
-        if (data) {
-          const { updatedAt: _updatedAt, ...appState } = data
+        let remoto: Dados | null = null
+        try {
+          if (data?.dados) {
+            remoto = paraDadosAtuais(data.dados, todayISO(), uid)
+          } else {
+            // Primeira conexão na v3: aproveita o documento da versão antiga, se houver.
+            const legado = await readLegacySync(code).catch(() => null)
+            if (legado) remoto = paraDadosAtuais(legado, todayISO(), uid)
+          }
+        } catch {
+          remoto = null
+        }
+        if (cancelled) return
+        if (remoto && data?.dados) {
           hydratingRef.current = true
-          useStore.setState(appState as Partial<AppState>)
+          useStore.setState(remoto)
           hydratingRef.current = false
-          lastSyncedRef.current = JSON.stringify(appState)
+          lastSyncedRef.current = JSON.stringify(getDados())
         } else {
-          const snapshot = getAppStateSnapshot()
+          if (remoto) useStore.setState(remoto)
+          const snapshot = getDados()
           lastSyncedRef.current = JSON.stringify(snapshot)
           pushToSync(code, snapshot).catch(() => {
             if (!cancelled) {
@@ -85,7 +115,7 @@ export function useCloudSync() {
       if (hydratingRef.current) return
       if (timer) clearTimeout(timer)
       timer = setTimeout(() => {
-        const snapshot = getAppStateSnapshot()
+        const snapshot = getDados()
         const serialized = JSON.stringify(snapshot)
         if (serialized === lastSyncedRef.current) return
         lastSyncedRef.current = serialized
