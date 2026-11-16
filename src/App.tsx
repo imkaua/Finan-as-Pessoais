@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { AppContext, useToday, type View } from './context'
 import { ModalProvider } from './components/ui/Modal'
 import { Icon } from './components/ui/Icon'
+import logoCarteira from './assets/logo-carteira.svg'
 import { SYNC_COLOR, SYNC_LABEL, useCloudSync } from './hooks/useCloudSync'
 import { addM, ymLabel } from './lib/dates'
 import { Geral } from './views/Geral'
@@ -67,7 +68,7 @@ function App() {
         <div className="app">
           <aside className="side">
             <div className="brand">
-              <img className="logo" src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" width={32} height={32} />
+              <img className="logo" src={logoCarteira} alt="" width={32} height={32} />
               Minhas Finanças
             </div>
             <nav className="nav" aria-label="Áreas">
