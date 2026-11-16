@@ -1,107 +1,134 @@
-import { useState } from 'react'
-import { OverviewSection } from './components/OverviewSection'
-import { BudgetSection } from './components/BudgetSection'
-import { EmergencyFundSection } from './components/EmergencyFundSection'
-import { BigExpensesSection } from './components/BigExpensesSection'
-import { SyncSection } from './components/SyncSection'
-import type { MonthKey } from './types'
-import { useStore } from './store'
-import { useCloudSync } from './hooks/useCloudSync'
+import { useEffect, useMemo, useState } from 'react'
+import { AppContext, useToday, type View } from './context'
+import { ModalProvider } from './components/ui/Modal'
+import { Icon } from './components/ui/Icon'
+import { SYNC_COLOR, SYNC_LABEL, useCloudSync } from './hooks/useCloudSync'
+import { addM, ymLabel } from './lib/dates'
+import { Geral } from './views/Geral'
+import { Pagamentos } from './views/Pagamentos'
+import { Fixos } from './views/Fixos'
+import { Variaveis } from './views/Variaveis'
+import { Assinaturas } from './views/Assinaturas'
+import { Objetivos } from './views/Objetivos'
+import { Dados } from './views/Dados'
 
-type Tab = 'overview' | 'budget' | 'fund' | 'expenses' | 'sync'
-
-const TABS: { key: Tab; label: string }[] = [
-  { key: 'overview', label: 'Visão geral' },
-  { key: 'budget', label: 'Orçamento mensal' },
-  { key: 'fund', label: 'Reserva de emergência' },
-  { key: 'expenses', label: 'Grandes gastos' },
-  { key: 'sync', label: 'Sincronização' },
+const NAV: { key: View; label: string; icon: string; sub: string }[] = [
+  { key: 'geral', label: 'Visão geral', icon: 'grid', sub: 'Resumo do mês: renda, compromissos e o que sobra' },
+  { key: 'pagamentos', label: 'Pagamentos', icon: 'receipt', sub: 'Faturas, boletos e Pix do mês num só checklist' },
+  { key: 'fixos', label: 'Gastos fixos', icon: 'home', sub: 'Contas recorrentes que entram todo mês' },
+  { key: 'variaveis', label: 'Gastos variáveis', icon: 'cart', sub: 'Limites por categoria e acompanhamento do que já foi gasto' },
+  { key: 'assinaturas', label: 'Assinaturas', icon: 'repeat', sub: 'Serviços recorrentes e até quando cada um vai' },
+  { key: 'objetivos', label: 'Objetivos', icon: 'target', sub: 'Metas, quanto já foi guardado e o aporte mensal necessário' },
 ]
+const DADOS = { key: 'dados' as View, label: 'Dados e sincronização', icon: 'cloud', sub: 'Backup, sincronização entre aparelhos e limpeza' }
+const VIEWS: View[] = [...NAV.map((n) => n.key), 'dados']
 
-const SYNC_DOT_COLOR: Record<string, string> = {
-  off: 'var(--text-muted)',
-  connecting: 'var(--status-warning)',
-  synced: 'var(--success-text)',
-  error: 'var(--status-critical)',
-}
-
-const SYNC_STATUS_LABEL: Record<string, string> = {
-  off: 'Não sincronizado',
-  connecting: 'Conectando…',
-  synced: 'Sincronizado',
-  error: 'Erro de sincronização',
+const viewFromHash = (): View => {
+  const h = window.location.hash.slice(1) as View
+  return VIEWS.includes(h) ? h : 'geral'
 }
 
 function App() {
-  const [tab, setTab] = useState<Tab>('overview')
-  const [month, setMonth] = useState<MonthKey>('2026-09')
-  const resetAll = useStore((s) => s.resetAll)
+  const today = useToday()
+  const cur = today.slice(0, 7)
+  const [ym, setYm] = useState(cur)
+  const [view, setView] = useState<View>(viewFromHash)
   const sync = useCloudSync()
 
+  useEffect(() => {
+    const on = () => setView(viewFromHash())
+    window.addEventListener('hashchange', on)
+    return () => window.removeEventListener('hashchange', on)
+  }, [])
+
+  const ctx = useMemo(
+    () => ({
+      ym,
+      setYm,
+      today,
+      cur,
+      view,
+      go: (v: View) => {
+        window.location.hash = v
+        setView(v)
+        window.scrollTo(0, 0)
+      },
+    }),
+    [ym, today, cur, view],
+  )
+
+  const nav = view === 'dados' ? DADOS : NAV.find((n) => n.key === view)!
+  const mensal = view !== 'objetivos' && view !== 'dados'
+  const tag = ym === cur ? 'MÊS ATUAL' : ym > cur ? 'PLANEJAMENTO' : 'HISTÓRICO'
+
   return (
-    <div className="min-h-screen">
-      <header className="border-b" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <h1 className="text-base font-semibold">Minhas Finanças</h1>
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-              Orçamento pessoal · Setembro a Dezembro de 2026
-            </p>
-          </div>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setTab('sync')}
-              className="flex items-center gap-1.5 text-xs cursor-pointer"
-              style={{ color: 'var(--text-secondary)' }}
-              title="Sincronização entre aparelhos"
-            >
-              <span className="w-1.5 h-1.5 rounded-full" style={{ background: SYNC_DOT_COLOR[sync.status] }} />
-              {SYNC_STATUS_LABEL[sync.status]}
-            </button>
-            <button
-              onClick={() => {
-                if (confirm('Isso vai apagar todos os dados salvos neste navegador. Continuar?')) resetAll()
-              }}
-              className="text-xs cursor-pointer"
-              style={{ color: 'var(--text-muted)' }}
-            >
-              Limpar dados
-            </button>
-          </div>
-        </div>
-        <nav className="max-w-6xl mx-auto px-4 sm:px-6 flex gap-1 overflow-x-auto">
-          {TABS.map((t) => {
-            const active = t.key === tab
-            return (
-              <button
-                key={t.key}
-                onClick={() => setTab(t.key)}
-                className="px-3 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px cursor-pointer transition-colors"
-                style={{
-                  borderColor: active ? 'var(--series-1)' : 'transparent',
-                  color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
-                }}
-              >
-                {t.label}
+    <AppContext.Provider value={ctx}>
+      <ModalProvider>
+        <div className="app">
+          <aside className="side">
+            <div className="brand">
+              <span className="logo">
+                <Icon name="wallet" size={18} stroke={2} />
+              </span>
+              Minhas Finanças
+            </div>
+            <nav className="nav" aria-label="Áreas">
+              {NAV.map((n) => (
+                <button key={n.key} className={view === n.key ? 'on' : ''} aria-current={view === n.key ? 'page' : undefined} onClick={() => ctx.go(n.key)}>
+                  <Icon name={n.icon} />
+                  <span>{n.label}</span>
+                </button>
+              ))}
+            </nav>
+            <div className="side-foot nav">
+              <button className={view === 'dados' ? 'on' : ''} onClick={() => ctx.go('dados')} title={SYNC_LABEL[sync.status]} aria-label="Dados e sincronização">
+                <Icon name="cloud" />
+                <span className="flex items-center gap-2">
+                  Dados e sincronização
+                  <i className="sync-dot" style={{ background: SYNC_COLOR[sync.status] }} />
+                </span>
               </button>
-            )
-          })}
-        </nav>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
-        {tab === 'overview' && <OverviewSection month={month} />}
-        {tab === 'budget' && <BudgetSection month={month} onMonth={setMonth} />}
-        {tab === 'fund' && <EmergencyFundSection />}
-        {tab === 'expenses' && <BigExpensesSection />}
-        {tab === 'sync' && <SyncSection sync={sync} />}
-      </main>
-
-      <footer className="max-w-6xl mx-auto px-4 sm:px-6 py-8 text-xs" style={{ color: 'var(--text-muted)' }}>
-        Os dados ficam salvos neste navegador
-        {sync.status === 'synced' ? ' e sincronizados com a nuvem' : ' (localStorage)'}.
-      </footer>
-    </div>
+              <small>{sync.status === 'synced' ? 'Salvo neste navegador e na nuvem' : 'Salvo neste navegador'}</small>
+            </div>
+          </aside>
+          <main className="content">
+            <header className="top">
+              <div>
+                <h1>{nav.label}</h1>
+                <p>{nav.sub}</p>
+              </div>
+              {mensal && (
+                <div className="monthsw">
+                  <button className="iconbtn" aria-label="Mês anterior" onClick={() => setYm(addM(ym, -1))}>
+                    <Icon name="left" />
+                  </button>
+                  <button
+                    className="lbl"
+                    style={{ background: 'none', border: 0, color: 'inherit', font: 'inherit', fontWeight: 700 }}
+                    onClick={() => setYm(cur)}
+                    title={ym === cur ? undefined : 'Voltar ao mês atual'}
+                    aria-live="polite"
+                  >
+                    <span className="tag">{tag}</span>
+                    {ymLabel(ym)}
+                  </button>
+                  <button className="iconbtn" aria-label="Próximo mês" onClick={() => setYm(addM(ym, 1))}>
+                    <Icon name="right" />
+                  </button>
+                </div>
+              )}
+            </header>
+            {view === 'geral' && <Geral />}
+            {view === 'pagamentos' && <Pagamentos />}
+            {view === 'fixos' && <Fixos />}
+            {view === 'variaveis' && <Variaveis />}
+            {view === 'assinaturas' && <Assinaturas />}
+            {view === 'objetivos' && <Objetivos />}
+            {view === 'dados' && <Dados sync={sync} />}
+          </main>
+        </div>
+      </ModalProvider>
+    </AppContext.Provider>
   )
 }
 
