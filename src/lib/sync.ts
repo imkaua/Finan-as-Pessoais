@@ -1,6 +1,7 @@
-import { doc, onSnapshot, setDoc, type Unsubscribe } from 'firebase/firestore'
+import { doc, getDoc, onSnapshot, setDoc, type Unsubscribe } from 'firebase/firestore'
 import { ensureSignedIn, getFirestoreDb, isFirebaseConfigured } from './firebase'
-import type { AppState } from '../types'
+import type { Dados } from '../types'
+import { SCHEMA_VERSION } from './migrate'
 
 export { isFirebaseConfigured }
 
@@ -27,17 +28,28 @@ export function generateCode(): string {
   return `${pick()}-${pick()}-${num}`
 }
 
-export type RemoteAppData = AppState & { updatedAt?: number }
+/**
+ * Os dados da v3 ficam num documento próprio (`<código>--v3`) na mesma coleção,
+ * para que um aparelho ainda com a versão antiga do app não sobrescreva o
+ * formato novo (e vice-versa). As regras do Firestore já cobrem qualquer id.
+ */
+const docId = (code: string) => `${normalizeCode(code)}--v${SCHEMA_VERSION}`
+
+export interface RemoteDoc {
+  schemaVersion?: number
+  updatedAt?: number
+  dados?: unknown
+}
 
 export async function subscribeToSync(
   code: string,
-  onRemoteData: (data: RemoteAppData | null) => void,
+  onRemoteData: (data: RemoteDoc | null) => void,
   onError: (err: unknown) => void,
 ): Promise<Unsubscribe | null> {
   const db = getFirestoreDb()
   if (!db) return null
   await ensureSignedIn()
-  const ref = doc(db, COLLECTION, normalizeCode(code))
+  const ref = doc(db, COLLECTION, docId(code))
   return onSnapshot(
     ref,
     (snap) => {
@@ -45,16 +57,29 @@ export async function subscribeToSync(
       // servidor) para não sobrescrever uma edição mais nova feita enquanto
       // esse envio estava em andamento.
       if (snap.metadata.hasPendingWrites) return
-      onRemoteData(snap.exists() ? (snap.data() as RemoteAppData) : null)
+      onRemoteData(snap.exists() ? (snap.data() as RemoteDoc) : null)
     },
     onError,
   )
 }
 
-export async function pushToSync(code: string, state: AppState): Promise<void> {
+/** Lê o documento da versão antiga (v2), usado só na primeira conexão da v3. */
+export async function readLegacySync(code: string): Promise<unknown | null> {
+  const db = getFirestoreDb()
+  if (!db) return null
+  await ensureSignedIn()
+  const snap = await getDoc(doc(db, COLLECTION, normalizeCode(code)))
+  if (!snap.exists()) return null
+  const { updatedAt: _u, ...data } = snap.data()
+  return data
+}
+
+export async function pushToSync(code: string, dados: Dados): Promise<void> {
   const db = getFirestoreDb()
   if (!db) return
   await ensureSignedIn()
-  const ref = doc(db, COLLECTION, normalizeCode(code))
-  await setDoc(ref, { ...state, updatedAt: Date.now() })
+  const ref = doc(db, COLLECTION, docId(code))
+  // O Firestore não aceita `undefined`; o round-trip em JSON remove esses campos.
+  const limpo = JSON.parse(JSON.stringify(dados)) as Dados
+  await setDoc(ref, { schemaVersion: SCHEMA_VERSION, updatedAt: Date.now(), dados: limpo })
 }

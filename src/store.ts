@@ -1,211 +1,131 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { AppState, BigExpense, Category, IncomeSource, MonthKey } from './types'
-import { MONTHS } from './types'
+import type {
+  Assinatura,
+  Dados,
+  FonteRenda,
+  GastoFixo,
+  ISODate,
+  Lancamento,
+  Objetivo,
+  Pagamento,
+  RendaMes,
+  YM,
+} from './types'
+import { aplicarLimites, aplicarRenda, registrarAporte, repetirFaturas } from './lib/finance'
+import { dadosVazios, migrarV2, normalizar, SCHEMA_VERSION, type V2State } from './lib/migrate'
+import { todayISO } from './lib/dates'
 
-const DEFAULT_CATEGORIES: Category[] = [
-  { id: 'moradia', name: 'Moradia', colorSlot: 1 },
-  { id: 'alimentacao', name: 'Alimentação', colorSlot: 2 },
-  { id: 'transporte', name: 'Transporte', colorSlot: 3 },
-  { id: 'saude', name: 'Saúde', colorSlot: 4 },
-  { id: 'lazer', name: 'Lazer', colorSlot: 5 },
-  { id: 'assinaturas', name: 'Assinaturas', colorSlot: 6 },
-  { id: 'educacao', name: 'Educação', colorSlot: 7 },
-  { id: 'outros', name: 'Outros', colorSlot: 8 },
+export const STORAGE_KEY = 'financas-pessoais-dashboard'
+export const BACKUP_V2_KEY = `${STORAGE_KEY}.backup-v2`
+
+export const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3)
+
+const upsert = <T extends { id: string }>(list: T[], item: T): T[] =>
+  list.some((x) => x.id === item.id) ? list.map((x) => (x.id === item.id ? item : x)) : [...list, item]
+
+interface Acoes {
+  salvarFontes: (fontes: FonteRenda[]) => void
+  salvarRenda: (ym: YM, valores: RendaMes, padrao: boolean) => void
+  salvarLimites: (ym: YM, limites: Record<string, number>, padrao: boolean) => void
+  salvarFixo: (f: GastoFixo) => void
+  removerFixo: (id: string) => void
+  salvarAssinatura: (a: Assinatura) => void
+  removerAssinatura: (id: string) => void
+  salvarLancamento: (l: Lancamento) => void
+  removerLancamento: (id: string) => void
+  salvarPagamento: (p: Pagamento) => void
+  removerPagamento: (id: string) => void
+  alternarPagoFixo: (ym: YM, fixoId: string) => void
+  alternarPagoAvulso: (id: string) => void
+  repetirFaturas: (ym: YM) => number
+  salvarObjetivo: (g: Objetivo) => void
+  removerObjetivo: (id: string) => void
+  registrarAporte: (id: string, data: ISODate, valor: number, resgate: boolean) => void
+  dispensarAviso: (id: string) => void
+  substituirTudo: (d: Dados) => void
+  limparTudo: () => void
+}
+
+export type Store = Dados & Acoes
+
+const CAMPOS: (keyof Dados)[] = [
+  'fontesRenda', 'rendaPadrao', 'renda', 'limitesPadrao', 'limites', 'fixos', 'assinaturas',
+  'lancamentos', 'pagamentos', 'pagosFixos', 'objetivos', 'avisos',
 ]
 
-const DEFAULT_INCOME_SOURCES: IncomeSource[] = [
-  { id: 'assessoria-kaua', name: 'Assessoria Kauã', colorSlot: 1 },
-  { id: 'assessoria-middle', name: 'Assessoria Middle', colorSlot: 2 },
-  { id: 'vida', name: 'Vida', colorSlot: 3 },
-  { id: 'asset-kaua', name: 'Asset Kauã', colorSlot: 4 },
-  { id: 'asset-middle', name: 'Asset Middle', colorSlot: 5 },
-]
-
-function slugify(name: string): string {
-  return `${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now().toString(36)}`
-}
-
-function nextColorSlot(items: { colorSlot: number }[]): number {
-  const usedSlots = new Set(items.map((c) => c.colorSlot))
-  for (let i = 1; i <= 8; i++) {
-    if (!usedSlots.has(i)) return i
-  }
-  return 1
-}
-
-function emptyMonthBudget() {
-  return { income: {}, planned: {}, actual: {} }
-}
-
-function defaultState(): AppState {
-  const months = {} as AppState['months']
-  for (const m of MONTHS) months[m.key] = emptyMonthBudget()
-  return {
-    categories: DEFAULT_CATEGORIES,
-    incomeSources: DEFAULT_INCOME_SOURCES,
-    months,
-    emergencyFund: {
-      goal: 0,
-      startingBalance: 0,
-      contributions: { '2026-09': 0, '2026-10': 0, '2026-11': 0, '2026-12': 0 },
-    },
-    bigExpenses: [],
-  }
-}
-
-interface Store extends AppState {
-  setIncomeAmount: (month: MonthKey, sourceId: string, value: number) => void
-  addIncomeSource: (name: string) => void
-  removeIncomeSource: (id: string) => void
-  setPlanned: (month: MonthKey, categoryId: string, value: number) => void
-  setActual: (month: MonthKey, categoryId: string, value: number) => void
-  addCategory: (name: string) => void
-  renameCategory: (id: string, name: string) => void
-  removeCategory: (id: string) => void
-  setEmergencyGoal: (value: number) => void
-  setEmergencyStarting: (value: number) => void
-  setEmergencyContribution: (month: MonthKey, value: number) => void
-  addBigExpense: (expense: Omit<BigExpense, 'id'>) => void
-  updateBigExpense: (id: string, patch: Partial<Omit<BigExpense, 'id'>>) => void
-  removeBigExpense: (id: string) => void
-  resetAll: () => void
-}
-
-export function getAppStateSnapshot(): AppState {
-  const s = useStore.getState()
-  return {
-    categories: s.categories,
-    incomeSources: s.incomeSources,
-    months: s.months,
-    emergencyFund: s.emergencyFund,
-    bigExpenses: s.bigExpenses,
-  }
+export function getDados(s: Store = useStore.getState()): Dados {
+  const out = {} as Record<string, unknown>
+  for (const k of CAMPOS) out[k] = s[k]
+  return out as unknown as Dados
 }
 
 export const useStore = create<Store>()(
   persist(
-    (set) => ({
-      ...defaultState(),
+    (set, get) => ({
+      ...dadosVazios(),
 
-      setIncomeAmount: (month, sourceId, value) =>
-        set((s) => ({
-          months: {
-            ...s.months,
-            [month]: {
-              ...s.months[month],
-              income: { ...s.months[month].income, [sourceId]: value },
-            },
-          },
-        })),
+      salvarFontes: (fontesRenda) => set({ fontesRenda }),
+      salvarRenda: (ym, valores, padrao) => set(aplicarRenda(getDados(get()), ym, valores, padrao)),
+      salvarLimites: (ym, limites, padrao) => set(aplicarLimites(getDados(get()), ym, limites, padrao)),
 
-      addIncomeSource: (name) =>
-        set((s) => ({
-          incomeSources: [
-            ...s.incomeSources,
-            { id: slugify(name), name, colorSlot: nextColorSlot(s.incomeSources) },
-          ],
-        })),
+      salvarFixo: (f) => set((s) => ({ fixos: upsert(s.fixos, f) })),
+      removerFixo: (id) => set((s) => ({ fixos: s.fixos.filter((x) => x.id !== id) })),
+      salvarAssinatura: (a) => set((s) => ({ assinaturas: upsert(s.assinaturas, a) })),
+      removerAssinatura: (id) => set((s) => ({ assinaturas: s.assinaturas.filter((x) => x.id !== id) })),
+      salvarLancamento: (l) => set((s) => ({ lancamentos: upsert(s.lancamentos, l) })),
+      removerLancamento: (id) => set((s) => ({ lancamentos: s.lancamentos.filter((x) => x.id !== id) })),
+      salvarPagamento: (p) => set((s) => ({ pagamentos: upsert(s.pagamentos, p) })),
+      removerPagamento: (id) => set((s) => ({ pagamentos: s.pagamentos.filter((x) => x.id !== id) })),
 
-      removeIncomeSource: (id) =>
+      alternarPagoFixo: (ym, fixoId) =>
         set((s) => {
-          const months = { ...s.months }
-          for (const key of Object.keys(months) as MonthKey[]) {
-            const { [id]: _i, ...income } = months[key].income
-            months[key] = { ...months[key], income }
-          }
-          return { incomeSources: s.incomeSources.filter((c) => c.id !== id), months }
+          const mes = { ...(s.pagosFixos[ym] ?? {}) }
+          if (mes[fixoId]) delete mes[fixoId]
+          else mes[fixoId] = true
+          return { pagosFixos: { ...s.pagosFixos, [ym]: mes } }
         }),
-
-      setPlanned: (month, categoryId, value) =>
+      alternarPagoAvulso: (id) =>
         set((s) => ({
-          months: {
-            ...s.months,
-            [month]: {
-              ...s.months[month],
-              planned: { ...s.months[month].planned, [categoryId]: value },
-            },
-          },
+          pagamentos: s.pagamentos.map((p) =>
+            p.id === id ? { ...p, pago: !p.pago, pagoEm: p.pago ? null : todayISO() } : p,
+          ),
+        })),
+      repetirFaturas: (ym) => {
+        const novos = repetirFaturas(get().pagamentos, ym, uid)
+        if (novos.length) set((s) => ({ pagamentos: [...s.pagamentos, ...novos] }))
+        return novos.length
+      },
+
+      salvarObjetivo: (g) => set((s) => ({ objetivos: upsert(s.objetivos, g) })),
+      removerObjetivo: (id) => set((s) => ({ objetivos: s.objetivos.filter((x) => x.id !== id) })),
+      registrarAporte: (id, data, valor, resgate) =>
+        set((s) => ({
+          objetivos: s.objetivos.map((g) => (g.id === id ? registrarAporte(g, data, valor, resgate) : g)),
         })),
 
-      setActual: (month, categoryId, value) =>
-        set((s) => ({
-          months: {
-            ...s.months,
-            [month]: {
-              ...s.months[month],
-              actual: { ...s.months[month].actual, [categoryId]: value },
-            },
-          },
-        })),
-
-      addCategory: (name) =>
-        set((s) => ({
-          categories: [
-            ...s.categories,
-            { id: slugify(name), name, colorSlot: nextColorSlot(s.categories) },
-          ],
-        })),
-
-      renameCategory: (id, name) =>
-        set((s) => ({
-          categories: s.categories.map((c) => (c.id === id ? { ...c, name } : c)),
-        })),
-
-      removeCategory: (id) =>
-        set((s) => {
-          const months = { ...s.months }
-          for (const key of Object.keys(months) as MonthKey[]) {
-            const { [id]: _p, ...planned } = months[key].planned
-            const { [id]: _a, ...actual } = months[key].actual
-            months[key] = { ...months[key], planned, actual }
-          }
-          return { categories: s.categories.filter((c) => c.id !== id), months }
-        }),
-
-      setEmergencyGoal: (value) =>
-        set((s) => ({ emergencyFund: { ...s.emergencyFund, goal: value } })),
-
-      setEmergencyStarting: (value) =>
-        set((s) => ({ emergencyFund: { ...s.emergencyFund, startingBalance: value } })),
-
-      setEmergencyContribution: (month, value) =>
-        set((s) => ({
-          emergencyFund: {
-            ...s.emergencyFund,
-            contributions: { ...s.emergencyFund.contributions, [month]: value },
-          },
-        })),
-
-      addBigExpense: (expense) =>
-        set((s) => ({
-          bigExpenses: [...s.bigExpenses, { ...expense, id: Date.now().toString(36) }],
-        })),
-
-      updateBigExpense: (id, patch) =>
-        set((s) => ({
-          bigExpenses: s.bigExpenses.map((e) => (e.id === id ? { ...e, ...patch } : e)),
-        })),
-
-      removeBigExpense: (id) =>
-        set((s) => ({ bigExpenses: s.bigExpenses.filter((e) => e.id !== id) })),
-
-      resetAll: () => set(defaultState()),
+      dispensarAviso: (id) => set((s) => ({ avisos: (s.avisos ?? []).filter((a) => a !== id) })),
+      substituirTudo: (d) => set(normalizar(d)),
+      limparTudo: () => set(dadosVazios()),
     }),
     {
-      name: 'financas-pessoais-dashboard',
-      version: 2,
-      migrate: (persisted) => {
-        const state = persisted as AppState & { incomeSources?: IncomeSource[] }
-        if (!state.incomeSources) state.incomeSources = DEFAULT_INCOME_SOURCES
-        for (const key of Object.keys(state.months ?? {}) as MonthKey[]) {
-          const month = state.months[key] as unknown as { income: unknown }
-          if (typeof month.income === 'number' || !month.income) {
-            state.months[key] = { ...state.months[key], income: {} }
+      name: STORAGE_KEY,
+      version: SCHEMA_VERSION,
+      partialize: (s) => getDados(s),
+      migrate: (persisted, version) => {
+        if (version < 3) {
+          // Guarda uma cópia intacta dos dados antigos antes de converter.
+          try {
+            const raw = localStorage.getItem(STORAGE_KEY)
+            if (raw && !localStorage.getItem(BACKUP_V2_KEY)) localStorage.setItem(BACKUP_V2_KEY, raw)
+          } catch {
+            /* sem storage: segue com a migração em memória */
           }
+          return migrarV2((persisted ?? {}) as V2State, todayISO(), uid) as unknown as Store
         }
-        return state
+        return normalizar(persisted as Partial<Dados>) as unknown as Store
       },
+      merge: (persisted, current) => ({ ...current, ...normalizar((persisted ?? {}) as Partial<Dados>) }),
     },
   ),
 )

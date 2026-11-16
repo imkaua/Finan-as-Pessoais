@@ -1,25 +1,31 @@
-export function formatBRL(value: number): string {
-  return value.toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    maximumFractionDigits: 0,
-  })
+const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
+
+/** Valor em reais com centavos (R$ 1.234,56). */
+export const BRL = (v: number) => brl.format(Number.isFinite(v) ? v : 0)
+
+/** Valor abreviado para eixos de gráfico (R$ 12,5k). */
+export const BRLk = (v: number) =>
+  Math.abs(v) >= 1000
+    ? `R$ ${(v / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}k`
+    : `R$ ${Math.round(v).toLocaleString('pt-BR')}`
+
+export const pct = (v: number) => `${Math.round((Number.isFinite(v) ? v : 0) * 100)}%`
+
+export const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um : varios}`
+
+/**
+ * Converte texto digitado em número, aceitando "1.234,56", "1234,56" e "1234.56".
+ * Retorna NaN se não for um número.
+ */
+export function parseValor(txt: string): number {
+  const s = String(txt).trim().replace(/[R$\s]/g, '')
+  if (!s) return NaN
+  let norm = s
+  if (s.includes(',')) norm = s.replace(/\./g, '').replace(',', '.')
+  else if (/^-?\d{1,3}(\.\d{3})+$/.test(s)) norm = s.replace(/\./g, '') // "1.234" = mil, não 1,234
+  return Number(norm)
 }
 
-export function formatBRLPrecise(value: number): string {
-  return value.toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  })
-}
-
-export function formatPct(value: number): string {
-  return `${Math.round(value * 100)}%`
-}
-
-export function formatDate(iso: string): string {
-  if (!iso) return '—'
-  const [year, month, day] = iso.split('-').map(Number)
-  const d = new Date(year, (month ?? 1) - 1, day ?? 1)
-  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
-}
+/** Formata para exibir num campo editável (sem símbolo, com vírgula). */
+export const valorParaCampo = (v: number | undefined | null) =>
+  v == null || !Number.isFinite(v) ? '' : String(Math.round(v * 100) / 100).replace('.', ',')

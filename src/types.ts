@@ -1,55 +1,100 @@
-export type MonthKey = '2026-09' | '2026-10' | '2026-11' | '2026-12'
+/** Mês no formato 'YYYY-MM'. */
+export type YM = string
+/** Data no formato 'YYYY-MM-DD'. */
+export type ISODate = string
 
-export interface MonthInfo {
-  key: MonthKey
-  label: string
-  short: string
-}
+export const FORMAS_PAGAMENTO = ['Boleto', 'Pix', 'Débito automático', 'Cartão'] as const
+export type FormaPagamento = (typeof FORMAS_PAGAMENTO)[number]
 
-export const MONTHS: MonthInfo[] = [
-  { key: '2026-09', label: 'Setembro', short: 'Set' },
-  { key: '2026-10', label: 'Outubro', short: 'Out' },
-  { key: '2026-11', label: 'Novembro', short: 'Nov' },
-  { key: '2026-12', label: 'Dezembro', short: 'Dez' },
-]
+export const TIPOS_PAGAMENTO = ['Fatura', 'Boleto', 'Pix'] as const
+export type TipoPagamento = (typeof TIPOS_PAGAMENTO)[number]
 
-export interface Category {
+export interface GastoFixo {
   id: string
-  name: string
-  colorSlot: number
+  nome: string
+  categoria: string
+  valor: number
+  /** Dia de vencimento (1–31). */
+  dia: number
+  forma: FormaPagamento
+  inicio: YM
+  fim: YM | null
 }
 
-export interface IncomeSource {
+export interface Assinatura {
   id: string
-  name: string
-  colorSlot: number
+  nome: string
+  categoria: string
+  valor: number
+  dia: number
+  inicio: YM
+  /** Último mês cobrado. */
+  fim: YM | null
 }
 
-export interface MonthBudget {
-  income: Record<string, number>
-  planned: Record<string, number>
-  actual: Record<string, number>
-}
-
-export interface EmergencyFundState {
-  goal: number
-  startingBalance: number
-  contributions: Record<MonthKey, number>
-}
-
-export interface BigExpense {
+export interface Lancamento {
   id: string
-  name: string
-  totalAmount: number
-  savedSoFar: number
-  targetDate: string
-  notes: string
+  mes: YM
+  data: ISODate
+  desc: string
+  categoria: string
+  valor: number
 }
 
-export interface AppState {
-  categories: Category[]
-  incomeSources: IncomeSource[]
-  months: Record<MonthKey, MonthBudget>
-  emergencyFund: EmergencyFundState
-  bigExpenses: BigExpense[]
+export interface Pagamento {
+  id: string
+  mes: YM
+  tipo: TipoPagamento
+  desc: string
+  valor: number
+  venc: ISODate
+  pago: boolean
+  pagoEm?: ISODate | null
+}
+
+/** Valor negativo = resgate. */
+export interface Aporte {
+  data: ISODate
+  valor: number
+}
+
+export interface Objetivo {
+  id: string
+  nome: string
+  icone: string
+  valor: number
+  acumulado: number
+  /** Data de criação, preenchida automaticamente. */
+  inicio: ISODate
+  fim: ISODate
+  aportes: Aporte[]
+  notas?: string
+}
+
+export interface FonteRenda {
+  id: string
+  nome: string
+}
+
+/** Valores de renda de um mês, por id de fonte. */
+export type RendaMes = Record<string, number>
+
+export interface Dados {
+  /** Fontes de renda (ex.: salário, assessoria). */
+  fontesRenda: FonteRenda[]
+  /** Renda padrão por fonte, usada nos meses sem ajuste próprio. */
+  rendaPadrao: RendaMes
+  /** Ajuste de renda por mês (override completo do padrão). */
+  renda: Record<YM, RendaMes>
+  limitesPadrao: Record<string, number>
+  limites: Record<YM, Record<string, number>>
+  fixos: GastoFixo[]
+  assinaturas: Assinatura[]
+  lancamentos: Lancamento[]
+  pagamentos: Pagamento[]
+  /** Status de pagamento dos gastos fixos por mês. */
+  pagosFixos: Record<YM, Record<string, boolean>>
+  objetivos: Objetivo[]
+  /** Avisos mostrados uma vez após a migração (ids). */
+  avisos?: string[]
 }

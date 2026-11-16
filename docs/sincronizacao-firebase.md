@@ -59,3 +59,11 @@ já vai poder sincronizar.
    são secretos — foram feitos pelo próprio Google para ficar no código do
    site). Eu coloco no projeto, faço o commit e a sincronização passa a
    funcionar para todo mundo que usar o link.
+
+## Versão 3 do dashboard
+
+A partir da versão 3, os dados ficam no documento `<código>--v3` da mesma
+coleção `financas-sync` (as regras acima já cobrem). Na primeira conexão, se
+esse documento ainda não existir, o app lê o documento antigo (`<código>`),
+converte para o formato novo e grava no `--v3`. O documento antigo não é
+alterado, e aparelhos ainda com a versão antiga não sobrescrevem os dados novos.
