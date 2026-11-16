@@ -158,11 +158,7 @@
   .brand .logo {
     width: 32px;
     height: 32px;
-    border-radius: 10px;
-    background: var(--accent);
-    color: #fff;
-    display: grid;
-    place-items: center;
+    display: block;
   }
   .nav {
     display: flex;
