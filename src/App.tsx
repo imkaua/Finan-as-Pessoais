@@ -67,9 +67,7 @@ function App() {
         <div className="app">
           <aside className="side">
             <div className="brand">
-              <span className="logo">
-                <Icon name="wallet" size={18} stroke={2} />
-              </span>
+              <img className="logo" src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" width={32} height={32} />
               Minhas Finanças
             </div>
             <nav className="nav" aria-label="Áreas">
