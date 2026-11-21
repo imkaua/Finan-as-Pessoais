@@ -165,13 +165,16 @@ describe('resumo do mês e aportes', () => {
     expect(resumoMes(d, '2026-12', TODAY).renda).toBe(13000)
   })
 
-  it('variável previsto = max(limites, gasto) e comprometido soma tudo', () => {
+  it('variável previsto = max(limites, gasto); comprometido não inclui aportes de objetivos', () => {
     const r = resumoMes(base(), '2026-11', TODAY)
     expect(r.varPrevisto).toBe(1800)
-    // aportes: g1 1200/6 = 200; g2 500/2 = 250
-    expect(r.aportes).toBe(450)
-    expect(r.comprometido).toBe(3000 + 50 + 1800 + 450)
-    expect(r.sobra).toBe(10000 - r.comprometido)
+    expect(r.comprometido).toBe(3000 + 50 + 1800)
+    expect(r.investimentos).toBe(10000 - 4850)
+  })
+
+  it('aportes mínimos dos objetivos seguem calculados à parte (só referência)', () => {
+    // g1 1200/6 = 200; g2 500/2 = 250
+    expect(aportesDoMes(base().objetivos, '2026-11', TODAY)).toBe(450)
   })
 
   it('mês futuro ignora objetivos que terminam antes dele', () => {

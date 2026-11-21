@@ -14,7 +14,7 @@ import { Objetivos } from './views/Objetivos'
 import { Dados } from './views/Dados'
 
 const NAV: { key: View; label: string; icon: string; sub: string }[] = [
-  { key: 'geral', label: 'Visão geral', icon: 'grid', sub: 'Resumo do mês: renda, compromissos e o que sobra' },
+  { key: 'geral', label: 'Visão geral', icon: 'grid', sub: 'Resumo do mês: renda, compromissos e quanto sobra para investir' },
   { key: 'pagamentos', label: 'Pagamentos', icon: 'receipt', sub: 'Faturas, boletos e Pix do mês num só checklist' },
   { key: 'fixos', label: 'Gastos fixos', icon: 'home', sub: 'Contas recorrentes que entram todo mês' },
   { key: 'variaveis', label: 'Gastos variáveis', icon: 'cart', sub: 'Limites por categoria e acompanhamento do que já foi gasto' },
