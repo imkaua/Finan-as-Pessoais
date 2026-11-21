@@ -161,6 +161,8 @@ export function normalizar(x: Partial<Dados>): Dados {
       ...f,
       forma: (FORMAS_PAGAMENTO as readonly string[]).includes(f.forma) ? f.forma : 'Boleto',
       fim: f.fim || null,
+      percentual: typeof f.percentual === 'number' && f.percentual > 0 ? f.percentual : null,
+      baseFontes: Array.isArray(f.baseFontes) && f.baseFontes.length ? f.baseFontes : null,
     })),
     assinaturas: arr<Dados['assinaturas'][number]>(x.assinaturas).map((a) => ({ ...a, fim: a.fim || null })),
     lancamentos: arr(x.lancamentos),

@@ -6,7 +6,7 @@ import { CheckField, MoneyField, SelectField, TextField, TextWithSuggestions } f
 import { GOAL_ICONS } from '../../lib/goalIcons'
 import { BRL, parseValor, valorParaCampo } from '../../lib/format'
 import { daysIn, ymLabel } from '../../lib/dates'
-import { calcObjetivo, limitesDoMes, rendaDoMes } from '../../lib/finance'
+import { calcObjetivo, limitesDoMes, rendaDoMes, valorFixo } from '../../lib/finance'
 import {
   FORMAS_PAGAMENTO,
   TIPOS_PAGAMENTO,
@@ -172,13 +172,14 @@ export function LimitesForm({ ym }: { ym: YM }) {
 
 function useCategoriasFixas() {
   const s = useStore()
-  return [...new Set([...s.fixos.map((f) => f.categoria), 'Moradia', 'Saúde', 'Educação', 'Transporte'].filter(Boolean))]
+  return [...new Set([...s.fixos.map((f) => f.categoria), 'Moradia', 'Saúde', 'Educação', 'Transporte', 'Doações'].filter(Boolean))]
 }
 
 export function FixoForm({ fixo }: { fixo?: GastoFixo }) {
   const { ym } = useApp()
   const s = useStore()
   const sugest = useCategoriasFixas()
+  const todasFontes = s.fontesRenda.map((x) => x.id)
   const [f, setF] = useState({
     nome: fixo?.nome ?? '',
     categoria: fixo?.categoria ?? '',
@@ -187,20 +188,34 @@ export function FixoForm({ fixo }: { fixo?: GastoFixo }) {
     forma: fixo?.forma ?? ('Boleto' as FormaPagamento),
     inicio: fixo?.inicio ?? ym,
     fim: fixo?.fim ?? '',
+    modo: fixo?.percentual != null ? 'pct' : 'fixo',
+    pct: fixo?.percentual != null ? valorParaCampo(fixo.percentual * 100) : '',
   })
+  const [base, setBase] = useState<string[]>(() => (fixo?.baseFontes?.length ? fixo.baseFontes : todasFontes))
   const [errs, setErrs] = useState<Errs>({})
   const up = (k: keyof typeof f) => (v: string) => setF((o) => ({ ...o, [k]: v }))
+
+  const pctNum = parseValor(f.pct)
+  const baseFontes = base.length === todasFontes.length ? null : base
+  const previa =
+    f.modo === 'pct' && Number.isFinite(pctNum) && pctNum > 0
+      ? valorFixo(s, { valor: 0, percentual: pctNum / 100, baseFontes }, ym)
+      : null
+
   return (
     <FormSheet
       title={fixo ? 'Editar gasto fixo' : 'Novo gasto fixo'}
       deleteText='Ele deixa de aparecer em todos os meses, inclusive no histórico. Para encerrar só daqui pra frente, preencha "Termina em".'
       onDelete={fixo ? () => s.removerFixo(fixo.id) : undefined}
       onSubmit={() => {
-        const [valor, ev] = positivo(f.valor)
         const dia = Number(f.dia)
+        const porPct = f.modo === 'pct'
+        const [valor, ev] = porPct ? [0, null] : positivo(f.valor)
         const e: Errs = {
           nome: f.nome.trim() ? null : 'Informe o nome',
           valor: ev,
+          pct: porPct && !(Number.isFinite(pctNum) && pctNum > 0 && pctNum <= 100) ? 'Informe um percentual entre 0 e 100' : null,
+          base: porPct && base.length === 0 ? 'Escolha pelo menos uma fonte de renda' : null,
           dia: Number.isInteger(dia) && dia >= 1 && dia <= 31 ? null : 'Dia entre 1 e 31',
           inicio: f.inicio ? null : 'Informe o mês de início',
           fim: f.fim && f.fim < f.inicio ? 'Deve ser depois do início' : null,
@@ -210,12 +225,52 @@ export function FixoForm({ fixo }: { fixo?: GastoFixo }) {
         s.salvarFixo({
           id: fixo?.id ?? uid(), nome: f.nome.trim(), categoria: f.categoria.trim() || 'Outros',
           valor, dia, forma: f.forma, inicio: f.inicio, fim: f.fim || null,
+          percentual: porPct ? pctNum / 100 : null,
+          baseFontes: porPct ? baseFontes : null,
         })
       }}
     >
-      <TextField label="Nome" placeholder="Ex.: Aluguel" value={f.nome} onChange={up('nome')} error={errs.nome} />
-      <TextWithSuggestions label="Categoria" placeholder="Moradia, Saúde, Educação…" value={f.categoria} onChange={up('categoria')} suggestions={sugest} />
-      <MoneyField label="Valor mensal (R$)" value={f.valor} onChange={up('valor')} error={errs.valor} />
+      <TextField label="Nome" placeholder="Ex.: Aluguel, Oferta" value={f.nome} onChange={up('nome')} error={errs.nome} />
+      <TextWithSuggestions label="Categoria" placeholder="Moradia, Saúde, Doações…" value={f.categoria} onChange={up('categoria')} suggestions={sugest} />
+      <SelectField
+        label="Como calcular o valor"
+        value={f.modo}
+        onChange={up('modo')}
+        options={[
+          ['fixo', 'Valor fixo em reais'],
+          ['pct', 'Porcentagem da renda do mês'],
+        ]}
+      />
+      {f.modo === 'fixo' ? (
+        <MoneyField label="Valor mensal (R$)" value={f.valor} onChange={up('valor')} error={errs.valor} />
+      ) : (
+        <>
+          <TextField
+            label="Percentual (%)"
+            inputMode="decimal"
+            placeholder="Ex.: 10"
+            value={f.pct}
+            onChange={up('pct')}
+            error={errs.pct}
+            hint={previa != null ? `Em ${ymLabel(ym).toLowerCase()}: ${BRL(previa)}. O valor muda junto com a renda de cada mês.` : 'O valor muda junto com a renda de cada mês.'}
+          />
+          {s.fontesRenda.length > 1 && (
+            <div className="field" style={{ marginBottom: 4 }}>
+              <label>Calcular sobre</label>
+              {errs.base && <span className="err">{errs.base}</span>}
+            </div>
+          )}
+          {s.fontesRenda.length > 1 &&
+            s.fontesRenda.map((fonte) => (
+              <CheckField
+                key={fonte.id}
+                label={fonte.nome}
+                checked={base.includes(fonte.id)}
+                onChange={(v) => setBase((o) => (v ? [...o, fonte.id] : o.filter((x) => x !== fonte.id)))}
+              />
+            ))}
+        </>
+      )}
       <TextField label="Dia do vencimento" type="number" inputMode="numeric" min={1} max={31} value={f.dia} onChange={up('dia')} error={errs.dia} hint="Em meses mais curtos, vence no último dia." />
       <SelectField label="Forma de pagamento" value={f.forma} onChange={up('forma')} options={[...FORMAS_PAGAMENTO]} />
       <TextField label="Começa em" type="month" value={f.inicio} onChange={up('inicio')} error={errs.inicio} />

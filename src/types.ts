@@ -19,6 +19,13 @@ export interface GastoFixo {
   forma: FormaPagamento
   inicio: YM
   fim: YM | null
+  /**
+   * Quando definido, o valor do mês é esse percentual (0–1) da renda daquele
+   * mês (ex.: oferta de 10%) e `valor` é ignorado.
+   */
+  percentual?: number | null
+  /** Fontes de renda usadas no cálculo do percentual; vazio ou null = todas. */
+  baseFontes?: string[] | null
 }
 
 export interface Assinatura {
