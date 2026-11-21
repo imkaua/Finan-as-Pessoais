@@ -4,7 +4,7 @@ import { useStore } from '../store'
 import { useApp } from '../context'
 import { useModal } from '../components/ui/Modal'
 import { Bar, Card, Chip, Empty, Kpi, Legend, Note } from '../components/ui'
-import { RendaForm } from '../components/forms'
+import { RendaForm, TotaisForm } from '../components/forms'
 import { BRL, BRLk, pct, plural } from '../lib/format'
 import { MESES, fmtDate, ymLabel, ymShort } from '../lib/dates'
 import {
@@ -132,7 +132,15 @@ export function Geral() {
       </div>
 
       <div className="grid-c2e">
-        <Card title="Gastos variáveis" sub={`${BRL(r.gastoVar)} de ${BRL(r.limiteTotal)}`}>
+        <Card
+          title="Gastos variáveis"
+          sub={`${BRL(r.gastoVar)} de ${BRL(r.limiteTotal)}`}
+          action={
+            <button className="btn ghost sm" onClick={() => open(<TotaisForm />)}>
+              Atualizar totais
+            </button>
+          }
+        >
           <div className="rows">
             {cats.map((c) => (
               <div key={c.nome} style={{ padding: '8px 0' }}>
