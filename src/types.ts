@@ -46,6 +46,12 @@ export interface Lancamento {
   desc: string
   categoria: string
   valor: number
+  /**
+   * Lançamento de ajuste criado por "Atualizar totais": guarda a diferença
+   * entre o total informado (ex.: o da fatura) e os demais lançamentos.
+   * Há no máximo um por categoria e mês; o valor pode ser negativo.
+   */
+  ajuste?: boolean
 }
 
 export interface Pagamento {

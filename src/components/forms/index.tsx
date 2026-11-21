@@ -6,7 +6,7 @@ import { CheckField, MoneyField, SelectField, TextField, TextWithSuggestions } f
 import { GOAL_ICONS } from '../../lib/goalIcons'
 import { BRL, parseValor, valorParaCampo } from '../../lib/format'
 import { daysIn, ymLabel } from '../../lib/dates'
-import { calcObjetivo, limitesDoMes, rendaDoMes, valorFixo } from '../../lib/finance'
+import { calcObjetivo, dataDoAjuste, limitesDoMes, rendaDoMes, valorFixo } from '../../lib/finance'
 import {
   FORMAS_PAGAMENTO,
   TIPOS_PAGAMENTO,
@@ -370,6 +370,52 @@ export function LancamentoForm({ lanc }: { lanc?: Lancamento }) {
         <TextField label="Categoria" value={f.categoria} onChange={up('categoria')} error={errs.categoria} hint="Ainda não há limites; a categoria será criada sem limite." />
       )}
       <MoneyField label="Valor (R$)" value={f.valor} onChange={up('valor')} error={errs.valor} />
+    </FormSheet>
+  )
+}
+
+/* ---------- Atualizar totais ---------- */
+
+export function TotaisForm({ foco }: { foco?: string }) {
+  const { ym, today } = useApp()
+  const s = useStore()
+  const doMes = s.lancamentos.filter((l) => l.mes === ym)
+  const cats = [...new Set([...Object.keys(limitesDoMes(s, ym)), ...doMes.map((l) => l.categoria)])]
+  const atual = (c: string) => doMes.filter((l) => l.categoria === c).reduce((acc, l) => acc + l.valor, 0)
+  const [vals, setVals] = useState<Record<string, string>>(() => Object.fromEntries(cats.map((c) => [c, valorParaCampo(atual(c))])))
+  const [errs, setErrs] = useState<Errs>({})
+  const ordem = foco ? [foco, ...cats.filter((c) => c !== foco)] : cats
+
+  return (
+    <FormSheet
+      title={`Atualizar totais · ${ymLabel(ym)}`}
+      onSubmit={() => {
+        const e: Errs = {}
+        const totais: Record<string, number> = {}
+        for (const c of cats) {
+          const txt = vals[c] ?? ''
+          const v = txt.trim() ? parseValor(txt) : 0
+          if (!Number.isFinite(v) || v < 0) e[c] = 'Valor inválido'
+          else if (Math.abs(v - atual(c)) >= 0.005) totais[c] = v
+        }
+        setErrs(e)
+        if (temErro(e)) return false
+        s.definirTotais(ym, totais, dataDoAjuste(ym, today))
+      }}
+    >
+      <p style={{ color: 'var(--muted)', fontSize: 12.5, marginTop: -8, marginBottom: 14 }}>
+        Digite quanto já foi gasto em cada categoria neste mês (por exemplo, o que aparece na fatura). Só as categorias alteradas mudam.
+      </p>
+      {cats.length === 0 && <p style={{ color: 'var(--muted)' }}>Nenhuma categoria ainda. Crie uma em “Editar limites”.</p>}
+      {ordem.map((c) => (
+        <MoneyField
+          key={c}
+          label={`${c} (R$)`}
+          value={vals[c] ?? ''}
+          error={errs[c]}
+          onChange={(v) => setVals((o) => ({ ...o, [c]: v }))}
+        />
+      ))}
     </FormSheet>
   )
 }

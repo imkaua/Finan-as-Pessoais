@@ -277,6 +277,47 @@ export function ritmoDoMes(r: ResumoMes, today: ISODate): Ritmo {
   return { mes, gasto, acima: gasto > mes + 0.05, diasRestantes, porDia: Math.max(0, disponivel) / diasRestantes }
 }
 
+/**
+ * Define o total gasto numa categoria no mês (ex.: o valor visto na fatura).
+ * Mantém um único lançamento de ajuste por categoria/mês com a diferença
+ * entre o total informado e os outros lançamentos; remove o ajuste se ela
+ * zerar. Devolve a lista de lançamentos atualizada.
+ */
+export function definirTotalCategoria(
+  lancamentos: Lancamento[],
+  mes: YM,
+  categoria: string,
+  total: number,
+  data: ISODate,
+  novoId: () => string,
+): Lancamento[] {
+  const daCat = (l: Lancamento) => l.mes === mes && l.categoria === categoria
+  const ajuste = lancamentos.find((l) => daCat(l) && l.ajuste)
+  const outros = sum(lancamentos.filter((l) => daCat(l) && !l.ajuste).map((l) => l.valor))
+  const diff = round2(total - outros)
+  const sem = lancamentos.filter((l) => l !== ajuste)
+  if (diff === 0) return sem
+  return [
+    ...sem,
+    {
+      id: ajuste?.id ?? novoId(),
+      mes,
+      data,
+      desc: 'Total atualizado',
+      categoria,
+      valor: diff,
+      ajuste: true,
+    },
+  ]
+}
+
+/** Data usada para o ajuste: hoje no mês atual; senão, o último dia (passado) ou o 1º (futuro). */
+export function dataDoAjuste(mes: YM, today: ISODate): ISODate {
+  const cur = today.slice(0, 7)
+  if (mes === cur) return today
+  return mes < cur ? dueISO(mes, 31) : `${mes}-01`
+}
+
 /* ---------- Pagamentos ---------- */
 
 export interface ItemPagamento {

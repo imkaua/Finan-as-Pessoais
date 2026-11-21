@@ -12,7 +12,7 @@ import type {
   RendaMes,
   YM,
 } from './types'
-import { aplicarLimites, aplicarRenda, registrarAporte, repetirFaturas } from './lib/finance'
+import { aplicarLimites, aplicarRenda, definirTotalCategoria, registrarAporte, repetirFaturas } from './lib/finance'
 import { dadosVazios, migrarV2, normalizar, SCHEMA_VERSION, type V2State } from './lib/migrate'
 import { todayISO } from './lib/dates'
 
@@ -34,6 +34,7 @@ interface Acoes {
   removerAssinatura: (id: string) => void
   salvarLancamento: (l: Lancamento) => void
   removerLancamento: (id: string) => void
+  definirTotais: (mes: YM, totais: Record<string, number>, data: ISODate) => void
   salvarPagamento: (p: Pagamento) => void
   removerPagamento: (id: string) => void
   alternarPagoFixo: (ym: YM, fixoId: string) => void
@@ -75,6 +76,14 @@ export const useStore = create<Store>()(
       removerAssinatura: (id) => set((s) => ({ assinaturas: s.assinaturas.filter((x) => x.id !== id) })),
       salvarLancamento: (l) => set((s) => ({ lancamentos: upsert(s.lancamentos, l) })),
       removerLancamento: (id) => set((s) => ({ lancamentos: s.lancamentos.filter((x) => x.id !== id) })),
+      definirTotais: (mes, totais, data) =>
+        set((s) => {
+          let lancamentos = s.lancamentos
+          for (const [categoria, total] of Object.entries(totais)) {
+            lancamentos = definirTotalCategoria(lancamentos, mes, categoria, total, data, uid)
+          }
+          return { lancamentos }
+        }),
       salvarPagamento: (p) => set((s) => ({ pagamentos: upsert(s.pagamentos, p) })),
       removerPagamento: (id) => set((s) => ({ pagamentos: s.pagamentos.filter((x) => x.id !== id) })),
 

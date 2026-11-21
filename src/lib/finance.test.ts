@@ -19,6 +19,8 @@ import {
   statusObjetivo,
   statusPagamento,
   valorFixo,
+  definirTotalCategoria,
+  dataDoAjuste,
 } from './finance'
 import { dadosVazios } from './migrate'
 import type { Dados, Objetivo, Pagamento } from '../types'
@@ -286,5 +288,45 @@ describe('valorFixo (gasto percentual, ex.: oferta de 10%)', () => {
     }
     expect(resumoMes(dd, '2026-12', TODAY).tFix).toBe(1500)
     expect(itensPagamento(dd, '2026-12')[0].valor).toBe(1500)
+  })
+})
+
+describe('definirTotalCategoria (Atualizar totais)', () => {
+  let n = 0
+  const id = () => `aj${++n}`
+  const base = [
+    { id: 'a', mes: '2026-11', data: '2026-11-03', desc: 'Assaí', categoria: 'Mercado', valor: 300 },
+    { id: 'b', mes: '2026-11', data: '2026-11-04', desc: 'Uber', categoria: 'Transporte', valor: 40 },
+    { id: 'c', mes: '2026-10', data: '2026-10-04', desc: 'Assaí', categoria: 'Mercado', valor: 500 },
+  ]
+  const totalMercado = (ls: typeof base) => ls.filter((l) => l.mes === '2026-11' && l.categoria === 'Mercado').reduce((s, l) => s + l.valor, 0)
+
+  it('cria um ajuste com a diferença para chegar ao total informado', () => {
+    const r = definirTotalCategoria(base, '2026-11', 'Mercado', 1230, '2026-11-21', id)
+    expect(totalMercado(r)).toBe(1230)
+    expect(r.filter((l) => 'ajuste' in l && l.ajuste)).toHaveLength(1)
+  })
+  it('atualizar de novo reaproveita o mesmo ajuste', () => {
+    const r1 = definirTotalCategoria(base, '2026-11', 'Mercado', 1230, '2026-11-21', id)
+    const r2 = definirTotalCategoria(r1, '2026-11', 'Mercado', 1500, '2026-11-25', id)
+    const ajustes = r2.filter((l) => 'ajuste' in l && l.ajuste)
+    expect(ajustes).toHaveLength(1)
+    expect(ajustes[0]).toMatchObject({ valor: 1200, data: '2026-11-25' })
+    expect(totalMercado(r2)).toBe(1500)
+  })
+  it('remove o ajuste quando o total volta a bater com os lançamentos', () => {
+    const r1 = definirTotalCategoria(base, '2026-11', 'Mercado', 1230, '2026-11-21', id)
+    const r2 = definirTotalCategoria(r1, '2026-11', 'Mercado', 300, '2026-11-21', id)
+    expect(r2).toEqual(base)
+  })
+  it('aceita total menor que os lançamentos (ajuste negativo) e não mexe em outros meses/categorias', () => {
+    const r = definirTotalCategoria(base, '2026-11', 'Mercado', 250, '2026-11-21', id)
+    expect(totalMercado(r)).toBe(250)
+    expect(r.filter((l) => l.mes === '2026-10' || l.categoria === 'Transporte')).toEqual([base[1], base[2]])
+  })
+  it('data do ajuste: hoje no mês atual, último dia no passado, dia 1 no futuro', () => {
+    expect(dataDoAjuste('2026-11', '2026-11-21')).toBe('2026-11-21')
+    expect(dataDoAjuste('2026-10', '2026-11-21')).toBe('2026-10-31')
+    expect(dataDoAjuste('2026-12', '2026-11-21')).toBe('2026-12-01')
   })
 })

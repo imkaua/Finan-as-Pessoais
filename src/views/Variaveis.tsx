@@ -3,7 +3,7 @@ import { useApp } from '../context'
 import { useModal } from '../components/ui/Modal'
 import { Bar, Card, Chip, Empty, Kpi, Note, RowButtons } from '../components/ui'
 import { Icon } from '../components/ui/Icon'
-import { LancamentoForm, LimitesForm } from '../components/forms'
+import { LancamentoForm, LimitesForm, TotaisForm } from '../components/forms'
 import { BRL, pct } from '../lib/format'
 import { ymLabel, ymShort } from '../lib/dates'
 import { categoriasDoMes, resumoMes, ritmoDoMes, type StatusCategoria, type TomStatus } from '../lib/finance'
@@ -71,6 +71,9 @@ export function Variaveis() {
                   {c.limite ? `de ${BRL(c.limite)} · ${resto >= 0 ? `restam ${BRL(resto)}` : `passou ${BRL(-resto)}`}` : 'sem limite definido'}
                 </div>
                 <Bar value={c.limite ? c.gasto / c.limite : 1} tom={tom} />
+                <button className="btn link" style={{ padding: '8px 0 0', fontSize: 12.5 }} onClick={() => open(<TotaisForm foco={c.nome} />)}>
+                  Atualizar total
+                </button>
               </div>
             )
           })}
@@ -93,6 +96,10 @@ export function Variaveis() {
             <button className="btn ghost sm" onClick={abrirLimites}>
               Editar limites
             </button>
+            <button className="btn ghost sm" onClick={() => open(<TotaisForm />)}>
+              <Icon name="edit" size={15} />
+              Atualizar totais
+            </button>
             <button className="btn sm" onClick={() => open(<LancamentoForm />)}>
               <Icon name="plus" size={15} stroke={2.2} />
               Novo gasto
@@ -109,7 +116,7 @@ export function Variaveis() {
               </div>
               <div>
                 <div className="t">{l.desc}</div>
-                <div className="m">{l.categoria}</div>
+                <div className="m">{l.ajuste ? `${l.categoria} · ajuste pelo total informado` : l.categoria}</div>
               </div>
               <div className="val num">{BRL(l.valor)}</div>
               <RowButtons
