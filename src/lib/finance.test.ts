@@ -18,6 +18,7 @@ import {
   statusCategoria,
   statusObjetivo,
   statusPagamento,
+  valorFixo,
 } from './finance'
 import { dadosVazios } from './migrate'
 import type { Dados, Objetivo, Pagamento } from '../types'
@@ -250,5 +251,37 @@ describe('aplicar como padrão', () => {
     const r = aplicarLimites(d, '2026-11', { X: 5 }, false)
     expect(r.limites).toEqual({ '2026-11': { X: 5 } })
     expect(r.limitesPadrao).toEqual({ X: 1 })
+  })
+})
+
+describe('valorFixo (gasto percentual, ex.: oferta de 10%)', () => {
+  const d: Dados = {
+    ...dadosVazios(),
+    fontesRenda: [{ id: 'sal', nome: 'Salário' }, { id: 'extra', nome: 'Extra' }],
+    rendaPadrao: { sal: 10000, extra: 2000 },
+    renda: { '2026-12': { sal: 15000, extra: 2000 } },
+  }
+  const fixo = { valor: 999, percentual: 0.1, baseFontes: null as string[] | null }
+
+  it('valor fixo continua igual quando não é percentual', () => {
+    expect(valorFixo(d, { valor: 500, percentual: null }, '2026-11')).toBe(500)
+  })
+  it('sem fontes escolhidas, usa a renda total do mês', () => {
+    expect(valorFixo(d, fixo, '2026-11')).toBe(1200)
+  })
+  it('acompanha a renda de cada mês', () => {
+    expect(valorFixo(d, fixo, '2026-12')).toBe(1700)
+  })
+  it('com fontes escolhidas, usa só elas', () => {
+    expect(valorFixo(d, { ...fixo, baseFontes: ['sal'] }, '2026-11')).toBe(1000)
+    expect(valorFixo(d, { ...fixo, baseFontes: ['sal'] }, '2026-12')).toBe(1500)
+  })
+  it('entra no comprometido e no checklist de pagamentos', () => {
+    const dd: Dados = {
+      ...d,
+      fixos: [{ id: 'o', nome: 'Oferta', categoria: 'Doações', valor: 0, dia: 10, forma: 'Pix', inicio: '2026-01', fim: null, percentual: 0.1, baseFontes: ['sal'] }],
+    }
+    expect(resumoMes(dd, '2026-12', TODAY).tFix).toBe(1500)
+    expect(itensPagamento(dd, '2026-12')[0].valor).toBe(1500)
   })
 })

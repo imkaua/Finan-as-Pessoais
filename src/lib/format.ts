@@ -29,3 +29,14 @@ export function parseValor(txt: string): number {
 /** Formata para exibir num campo editável (sem símbolo, com vírgula). */
 export const valorParaCampo = (v: number | undefined | null) =>
   v == null || !Number.isFinite(v) ? '' : String(Math.round(v * 100) / 100).replace('.', ',')
+
+/** "10% da renda" ou "10% de Salário + Vida", para gastos percentuais. */
+export function descreverPercentual(
+  percentual: number,
+  baseFontes: string[] | null | undefined,
+  fontes: { id: string; nome: string }[],
+): string {
+  const p = `${(Math.round(percentual * 10000) / 100).toLocaleString('pt-BR')}%`
+  const nomes = (baseFontes ?? []).map((id) => fontes.find((f) => f.id === id)?.nome).filter(Boolean)
+  return nomes.length && nomes.length < fontes.length ? `${p} de ${nomes.join(' + ')}` : `${p} da renda`
+}

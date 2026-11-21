@@ -4,18 +4,19 @@ import { useModal } from '../components/ui/Modal'
 import { Card, Chip, Empty, Kpi, Note, RowButtons } from '../components/ui'
 import { Icon } from '../components/ui/Icon'
 import { FixoForm } from '../components/forms'
-import { BRL, pct, plural } from '../lib/format'
+import { BRL, descreverPercentual, pct, plural } from '../lib/format'
 import { ymShort } from '../lib/dates'
-import { isActive, resumoMes } from '../lib/finance'
+import { isActive, resumoMes, valorFixo } from '../lib/finance'
 
 export function Fixos() {
   const { ym, today, go } = useApp()
   const { open, confirm } = useModal()
   const store = useStore()
-  const r = resumoMes(getDados(store), ym, today)
+  const dados = getDados(store)
+  const r = resumoMes(dados, ym, today)
   const todos = [...store.fixos].sort((a, b) => Number(isActive(b, ym)) - Number(isActive(a, ym)) || a.dia - b.dia)
   const porCat: Record<string, number> = {}
-  for (const f of r.fixos) porCat[f.categoria] = (porCat[f.categoria] ?? 0) + f.valor
+  for (const f of r.fixos) porCat[f.categoria] = (porCat[f.categoria] ?? 0) + valorFixo(dados, f, ym)
   const maior = Object.entries(porCat).sort((a, b) => b[1] - a[1])[0]
   const mostrarAviso = (store.avisos ?? []).includes('migracao-categorias-fixas')
 
@@ -60,10 +61,11 @@ export function Fixos() {
                   </div>
                   <div className="m">
                     {f.categoria} · dia {f.dia} · {f.forma}
+                    {f.percentual != null && ` · ${descreverPercentual(f.percentual, f.baseFontes, store.fontesRenda)}`}
                   </div>
                 </div>
                 <Chip className="hide-s">{f.fim ? `até ${ymShort(f.fim)}` : 'sem data de fim'}</Chip>
-                <div className="val num">{BRL(f.valor)}</div>
+                <div className="val num">{BRL(valorFixo(dados, f, ym))}</div>
                 <RowButtons
                   label={f.nome}
                   onEdit={() => open(<FixoForm fixo={f} />)}

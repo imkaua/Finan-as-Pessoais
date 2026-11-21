@@ -42,6 +42,21 @@ export function limitesDoMes(d: Pick<Dados, 'limites' | 'limitesPadrao'>, ym: YM
   return d.limites[ym] ?? d.limitesPadrao
 }
 
+/**
+ * Valor de um gasto fixo no mês. Para itens percentuais (ex.: 10% da renda),
+ * calcula sobre a renda do mês das fontes escolhidas (todas, se nenhuma).
+ */
+export function valorFixo(
+  d: Pick<Dados, 'renda' | 'rendaPadrao' | 'fontesRenda'>,
+  f: Pick<GastoFixo, 'valor' | 'percentual' | 'baseFontes'>,
+  ym: YM,
+): number {
+  if (f.percentual == null) return f.valor
+  const r = rendaDoMes(d, ym)
+  const ids = f.baseFontes?.length ? f.baseFontes : d.fontesRenda.map((x) => x.id)
+  return round2(f.percentual * sum(ids.map((id) => r[id] ?? 0)))
+}
+
 /** Primeiro mês com algum dado registrado (ou `fallback` se não houver). */
 export function primeiroMes(d: Dados, fallback: YM): YM {
   const ms: YM[] = [
@@ -202,7 +217,7 @@ export function resumoMes(d: Dados, ym: YM, today: ISODate): ResumoMes {
   const limiteTotal = sum(Object.values(limites))
   const lancamentos = d.lancamentos.filter((l) => l.mes === ym)
   const gastoVar = sum(lancamentos.map((l) => l.valor))
-  const tFix = sum(fixos.map((f) => f.valor))
+  const tFix = sum(fixos.map((f) => valorFixo(d, f, ym)))
   const tAss = sum(assinaturas.map((a) => a.valor))
   const varPrevisto = Math.max(limiteTotal, gastoVar)
   const aportes = aportesDoMes(d.objetivos, ym, today)
@@ -281,7 +296,7 @@ export function itensPagamento(d: Dados, ym: YM): ItemPagamento[] {
     .filter((f) => isActive(f, ym))
     .map((f) => ({
       key: `f:${f.id}`, origem: 'fixo', ref: f.id, tipo: f.forma, desc: f.nome,
-      valor: f.valor, venc: dueISO(ym, f.dia), pago: !!pf[f.id],
+      valor: valorFixo(d, f, ym), venc: dueISO(ym, f.dia), pago: !!pf[f.id],
     }))
   const av: ItemPagamento[] = d.pagamentos
     .filter((p) => p.mes === ym)
