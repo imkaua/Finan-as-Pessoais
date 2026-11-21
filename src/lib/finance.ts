@@ -204,13 +204,14 @@ export interface ResumoMes {
   tFix: number
   tAss: number
   varPrevisto: number
-  aportes: number
   renda: number
+  /** Fixos + assinaturas + variável previsto. Aportes de objetivos não entram. */
   comprometido: number
-  sobra: number
+  /** O que sobra da renda após os compromissos, considerado como investimento. */
+  investimentos: number
 }
 
-export function resumoMes(d: Dados, ym: YM, today: ISODate): ResumoMes {
+export function resumoMes(d: Dados, ym: YM, _today?: ISODate): ResumoMes {
   const fixos = d.fixos.filter((f) => isActive(f, ym))
   const assinaturas = d.assinaturas.filter((a) => isActive(a, ym))
   const limites = limitesDoMes(d, ym)
@@ -220,12 +221,11 @@ export function resumoMes(d: Dados, ym: YM, today: ISODate): ResumoMes {
   const tFix = sum(fixos.map((f) => valorFixo(d, f, ym)))
   const tAss = sum(assinaturas.map((a) => a.valor))
   const varPrevisto = Math.max(limiteTotal, gastoVar)
-  const aportes = aportesDoMes(d.objetivos, ym, today)
   const renda = rendaTotal(d, ym)
-  const comprometido = tFix + tAss + varPrevisto + aportes
+  const comprometido = tFix + tAss + varPrevisto
   return {
     ym, fixos, assinaturas, limites, limiteTotal, lancamentos, gastoVar,
-    tFix, tAss, varPrevisto, aportes, renda, comprometido, sobra: renda - comprometido,
+    tFix, tAss, varPrevisto, renda, comprometido, investimentos: renda - comprometido,
   }
 }
 

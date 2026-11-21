@@ -23,8 +23,8 @@ const SERIES = [
   { key: 'tFix', label: 'Fixos', color: 'var(--c-fixo)' },
   { key: 'tAss', label: 'Assinaturas', color: 'var(--c-ass)' },
   { key: 'varPrevisto', label: 'Variáveis', color: 'var(--c-var)' },
-  { key: 'aportes', label: 'Objetivos', color: 'var(--c-obj)' },
 ] as const
+const COR_INVEST = 'var(--c-obj)'
 
 const TOM_CAT: Record<string, TomStatus> = { ok: 'ok', atencao: 'warn', estourou: 'bad', 'sem-limite': 'bad' }
 
@@ -41,7 +41,7 @@ export function Geral() {
   const base = Math.max(r.renda, r.comprometido) || 1
   const segs = [
     ...SERIES.map((s) => ({ label: s.label, color: s.color, valor: r[s.key] })),
-    { label: 'Sobra', color: 'var(--c-sobra)', valor: Math.max(0, r.sobra) },
+    { label: 'Investimentos', color: COR_INVEST, valor: Math.max(0, r.investimentos) },
   ]
   const cats = categoriasDoMes(r)
     .filter((c) => c.limite > 0 || c.gasto > 0)
@@ -64,10 +64,10 @@ export function Geral() {
         />
         <Kpi label="Comprometido" icon="wallet" value={BRL(r.comprometido)} sub={`${pct(r.comprometido / (r.renda || 1))} da renda`} />
         <Kpi
-          label="Sobra projetada"
-          icon="ok"
-          value={<span className={r.sobra < 0 ? 'neg' : 'pos'}>{BRL(r.sobra)}</span>}
-          sub={r.sobra < 0 ? 'Compromissos acima da renda' : 'Livre após compromissos e metas'}
+          label="Investimentos"
+          icon="coin"
+          value={<span className={r.investimentos < 0 ? 'neg' : 'pos'}>{BRL(r.investimentos)}</span>}
+          sub={r.investimentos < 0 ? 'Compromissos acima da renda' : `${pct(r.investimentos / (r.renda || 1))} da renda`}
         />
         <Kpi
           label="A pagar no mês"
@@ -102,9 +102,9 @@ export function Geral() {
               ))}
             </div>
           )}
-          {r.sobra < 0 && (
+          {r.investimentos < 0 && (
             <Note tom="bad" icon="alert" className="mt-3.5">
-              Os compromissos passam a renda em {BRL(-r.sobra)}. Reveja limites variáveis ou aportes deste mês.
+              Os compromissos passam a renda em {BRL(-r.investimentos)}. Reveja os limites dos gastos variáveis deste mês.
             </Note>
           )}
         </Card>
@@ -173,7 +173,7 @@ export function Geral() {
         </Card>
       </div>
 
-      <Card title="Próximos 6 meses" sub="Compromissos empilhados contra a renda prevista">
+      <Card title="Próximos 6 meses" sub="Compromissos e investimentos contra a renda prevista">
         <Projecao />
       </Card>
     </>
@@ -186,10 +186,10 @@ interface Ponto {
   tFix: number
   tAss: number
   varPrevisto: number
-  aportes: number
+  investPos: number
   renda: number
   topo: number
-  sobra: number
+  investimentos: number
 }
 
 function useEstreito(px = 520) {
@@ -216,10 +216,10 @@ function Projecao() {
         tFix: r.tFix,
         tAss: r.tAss,
         varPrevisto: r.varPrevisto,
-        aportes: r.aportes,
+        investPos: Math.max(0, r.investimentos),
         renda: r.renda,
         topo: Math.max(r.renda, r.comprometido),
-        sobra: r.sobra,
+        investimentos: r.investimentos,
       })),
     [store, ym, today],
   )
@@ -232,13 +232,14 @@ function Projecao() {
             <XAxis dataKey="label" interval={0} tickLine={false} axisLine={{ stroke: 'var(--line)' }} tick={{ fill: 'var(--muted)', fontSize: 11 }} />
             <YAxis tickFormatter={BRLk} tickLine={false} axisLine={false} width={estreito ? 52 : 64} tick={{ fill: 'var(--muted)', fontSize: 11 }} />
             <Tooltip content={<ProjTooltip />} cursor={{ fill: 'var(--surface-2)' }} />
-            {SERIES.map((s, i) => (
-              <RBar key={s.key} dataKey={s.key} name={s.label} stackId="c" fill={s.color} radius={i === SERIES.length - 1 ? [4, 4, 0, 0] : 0} isAnimationActive={false} />
+            {SERIES.map((s) => (
+              <RBar key={s.key} dataKey={s.key} name={s.label} stackId="c" fill={s.color} isAnimationActive={false} />
             ))}
+            <RBar dataKey="investPos" name="Investimentos" stackId="c" fill={COR_INVEST} radius={[4, 4, 0, 0]} isAnimationActive={false} />
             <Line dataKey="renda" name="Renda prevista" stroke="var(--ink)" strokeWidth={2} strokeDasharray="4 3" dot={{ r: 3, fill: 'var(--ink)' }} isAnimationActive={false} />
-            {/* Série invisível no topo de cada mês (renda ou comprometido), só para o rótulo de sobra/déficit */}
+            {/* Série invisível no topo de cada mês (renda ou comprometido), só para o rótulo de investimentos/déficit */}
             <Line dataKey="topo" stroke="none" dot={false} activeDot={false} legendType="none" isAnimationActive={false}>
-              <LabelList dataKey="sobra" content={<SobraLabel compacto={estreito} />} />
+              <LabelList dataKey="investimentos" content={<InvestLabel compacto={estreito} />} />
             </Line>
           </ComposedChart>
         </ResponsiveContainer>
@@ -251,6 +252,10 @@ function Projecao() {
           </span>
         ))}
         <span>
+          <i className="dot" style={{ background: COR_INVEST }} />
+          Investimentos
+        </span>
+        <span>
           <svg width="18" height="6" aria-hidden="true">
             <line x1="0" x2="18" y1="3" y2="3" stroke="var(--ink)" strokeWidth="2" strokeDasharray="4 3" />
           </svg>
@@ -261,7 +266,7 @@ function Projecao() {
   )
 }
 
-function SobraLabel(props: { x?: number | string; y?: number | string; value?: number | string; compacto?: boolean }) {
+function InvestLabel(props: { x?: number | string; y?: number | string; value?: number | string; compacto?: boolean }) {
   const x = Number(props.x)
   const y = Number(props.y)
   const v = Number(props.value)
@@ -294,8 +299,11 @@ function ProjTooltip({ active, payload }: { active?: boolean; payload?: { payloa
         <span className="num">{BRL(p.renda)}</span>
       </div>
       <div className="flex justify-between gap-4 mt-1">
-        <b>{p.sobra < 0 ? 'Déficit' : 'Sobra'}</b>
-        <b className={`num ${p.sobra < 0 ? 'neg' : 'pos'}`}>{BRL(p.sobra)}</b>
+        <b className="flex items-center gap-1.5">
+          {p.investimentos >= 0 && <i className="dot" style={{ background: COR_INVEST }} />}
+          {p.investimentos < 0 ? 'Déficit' : 'Investimentos'}
+        </b>
+        <b className={`num ${p.investimentos < 0 ? 'neg' : 'pos'}`}>{BRL(p.investimentos)}</b>
       </div>
     </div>
   )
